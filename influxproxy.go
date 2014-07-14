@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -31,5 +32,10 @@ func main() {
 	o, _ := plugin.NewOrchestrator(getConf("ORCH"))
 	log.Print(o.Config.Print())
 	o.Start()
+
+	// wait a bit
+	var input string
+	fmt.Scanln(&input)
+
 	log.Print(o.Registry.Print())
 }

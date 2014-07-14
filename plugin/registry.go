@@ -10,19 +10,29 @@ func NewPluginRegistry() (*PluginRegistry, error) {
 	return &PluginRegistry{}, nil
 }
 
-func (r *PluginRegistry) RegisterPlugin(id string) {
-	p, _ := NewPluginRegister(id)
+func (r *PluginRegistry) RegisterPlugin(name string) {
+	p, _ := NewPluginRegister(name)
 	*r = append(*r, *p)
 }
 
+func (r *PluginRegistry) GetPlugins() []PluginRegister {
+	// TODO: this should not return a copy but a reference.
+	// Otherwise, data cannot be updated (eg. Status)
+	return *r
+}
+
 func (r *PluginRegistry) Print() string {
-	return fmt.Sprintf("%+v\n", *r)
+	var out string
+	for index, plugin := range r.GetPlugins() {
+		out += fmt.Sprintf("---\nPLUGIN %v\n  NAME:   %v,\n  PORT:   %v,\n  STATUS: %+v\n", index, plugin.Name, plugin.Port, plugin.Status)
+	}
+	return out
 }
 
 type PluginRegister struct {
-	Id     string
+	Name   string
 	Port   int
-	Status PluginStatus
+	Status *PluginStatus
 }
 
 type PluginStatus struct {
@@ -31,15 +41,15 @@ type PluginStatus struct {
 	Failed    bool
 }
 
-func NewPluginRegister(id string) (*PluginRegister, error) {
-	s := PluginStatus{
+func NewPluginRegister(name string) (*PluginRegister, error) {
+	s := &PluginStatus{
 		Started:   false,
 		Connected: false,
 		Failed:    false,
 	}
 
 	p := &PluginRegister{
-		Id:     id,
+		Name:   name,
 		Port:   0,
 		Status: s,
 	}
