@@ -91,7 +91,8 @@ func (orch *Orchestrator) spinupPlugin(p *PluginRegister) error {
 	c := make(chan bool)
 	go orch.launchPlugin(p, c)
 	<-c
-	// orch.plugins.registerPlugin(p)
+	// TODO: waiting for Plugins to connect should time out and set status to "failed=true"
+
 	// orch.waitForPlugin(p)
 	// orch.salutePlugin(p)
 	return nil
