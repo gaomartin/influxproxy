@@ -22,7 +22,7 @@ func (r *PluginRegistry) Print() string {
 type PluginRegister struct {
 	Id     string
 	Port   int
-	Status *PluginStatus
+	Status PluginStatus
 }
 
 type PluginStatus struct {
@@ -32,7 +32,7 @@ type PluginStatus struct {
 }
 
 func NewPluginRegister(id string) (*PluginRegister, error) {
-	s := &PluginStatus{
+	s := PluginStatus{
 		Started:   false,
 		Connected: false,
 		Failed:    false,
