@@ -16,8 +16,6 @@ func (r *PluginRegistry) RegisterPlugin(name string) {
 }
 
 func (r *PluginRegistry) GetPlugins() []PluginRegister {
-	// TODO: this should not return a copy but a reference.
-	// Otherwise, data cannot be updated (eg. Status)
 	return *r
 }
 
