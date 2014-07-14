@@ -5,4 +5,4 @@ export ORCH_MAXPORT=5000
 export ORCH_PLUGINDIR=/tmp/plugins
 export ORCH_PLUGINS=/tmp/plugins/test,/tmp/plugins/bla
 
-go run orch.go
+go run influxproxy.go
