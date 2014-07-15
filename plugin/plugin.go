@@ -98,6 +98,7 @@ func (p *Plugin) Run(e Exposer) {
 	go p.launch(c, e)
 	p.Fingerprint.Port = <-c
 	p.handshake()
+	// TODO: make the plugin run forever
 }
 
 func (p *Plugin) handshake() bool {
