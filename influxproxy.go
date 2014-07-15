@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/influxproxy/influxproxy/plugin"
+	//"github.com/influxproxy/influxproxy/plugin"
+	orch "github.com/influxproxy/influxproxy/orchestrator"
 )
 
-func getConf(prefix string) *plugin.OrchestratorConfiguration {
+func getConf(prefix string) *orch.OrchestratorConfiguration {
 	if prefix != "" {
 		prefix = prefix + "_"
 	}
@@ -18,7 +19,7 @@ func getConf(prefix string) *plugin.OrchestratorConfiguration {
 	minport, _ := strconv.Atoi(os.Getenv(prefix + "MINPORT"))
 	maxport, _ := strconv.Atoi(os.Getenv(prefix + "MAXPORT"))
 
-	config := plugin.OrchestratorConfiguration{
+	config := orch.OrchestratorConfiguration{
 		Address: os.Getenv(prefix + "ADDRESS"),
 		MinPort: minport,
 		MaxPort: maxport,
@@ -29,7 +30,10 @@ func getConf(prefix string) *plugin.OrchestratorConfiguration {
 }
 
 func main() {
-	o, _ := plugin.NewOrchestrator(getConf("ORCH"))
+	o, err := orch.NewOrchestrator(getConf("ORCH"))
+	if err != nil {
+		log.Print(err)
+	}
 	log.Print(o.Config.Print())
 	o.Start()
 
@@ -37,5 +41,6 @@ func main() {
 	var input string
 	fmt.Scanln(&input)
 
+	//TODO: Spawned processes will life forever, needs some cleanup
 	log.Print(o.Registry.Print())
 }
