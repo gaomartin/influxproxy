@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	//"github.com/influxproxy/influxproxy/plugin"
 	orch "github.com/influxproxy/influxproxy/orchestrator"
 )
 
