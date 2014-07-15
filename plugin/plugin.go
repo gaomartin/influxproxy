@@ -1,14 +1,14 @@
 package plugin
 
 import (
-	"os"
-	"path/filepath"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/rpc"
+	"os"
+	"path/filepath"
 	"strconv"
-	"log"
 )
 
 type Fingerprint struct {
@@ -17,10 +17,10 @@ type Fingerprint struct {
 }
 
 type PluginConfiguration struct {
-	OrchConnString   string
-	Address	         string
-	MaxPort          int
-	MinPort          int
+	OrchConnString string
+	Address        string
+	MaxPort        int
+	MinPort        int
 }
 
 type Plugin struct {
@@ -29,7 +29,6 @@ type Plugin struct {
 }
 
 func NewPlugin() (*Plugin, error) {
-	// TODO: Recieve a Struct that implements the exposer interface and expose its fuctions via RCP
 	max, _ := strconv.Atoi(os.Getenv("PLUGIN_MAX_PORT"))
 	min, _ := strconv.Atoi(os.Getenv("PLUGIN_MIN_PORT"))
 	address := os.Getenv("PLUGIN_ADDRESS")
@@ -49,7 +48,7 @@ func NewPlugin() (*Plugin, error) {
 		}
 
 		p := &Plugin{
-			Config: conf,
+			Config:      conf,
 			Fingerprint: fp,
 		}
 		return p, nil
@@ -70,9 +69,13 @@ func (p *Plugin) getListener() (net.Listener, int, error) {
 	return nil, 0, errors.New("Could not get TCP listener, maybe all ports are already used")
 }
 
-func (p *Plugin) launch(c chan int) error {
-	// api := NewPluginApi(this)
-	// rpc.Register(api)
+func (p *Plugin) launch(c chan int, e Exposer) error {
+	api, err := NewConnector(e)
+	if err != nil {
+		c <- 0
+		return err
+	}
+	rpc.Register(api)
 	ln, port, err := p.getListener()
 
 	if err != nil {
@@ -90,10 +93,10 @@ func (p *Plugin) launch(c chan int) error {
 	return nil
 }
 
-func (p *Plugin) Run() {
+func (p *Plugin) Run(e Exposer) {
 	c := make(chan int)
-	go p.launch(c)
-	p.Fingerprint.Port = <- c
+	go p.launch(c, e)
+	p.Fingerprint.Port = <-c
 	p.handshake()
 }
 
