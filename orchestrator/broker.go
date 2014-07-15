@@ -29,7 +29,7 @@ func NewPluginBroker(name string, path string) (*PluginBroker, error) {
 
 	p := &PluginBroker{
 		Name:   name,
-		Path:	path,
+		Path:   path,
 		Port:   0,
 		Status: s,
 	}
@@ -52,12 +52,12 @@ func (p *PluginBroker) Spinup(orch *Orchestrator) error {
 
 // Launch the plugin binary
 func (p *PluginBroker) launch(c chan bool, orch *Orchestrator) error {
-	
+
 	fmt.Println("Launch: " + p.Name)
 
 	if _, err := os.Stat(p.Path); os.IsNotExist(err) {
 		p.Status.Failed = true
-    	return err
+		return err
 	}
 
 	cmd := exec.Command(p.Path)

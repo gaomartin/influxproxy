@@ -119,7 +119,6 @@ func (orch *Orchestrator) getListener() (net.Listener, int, error) {
 	return nil, 0, errors.New("Could not get TCP listener, maybe all ports are already used")
 }
 
-
 // ---------------------------------------------------------------------------------
 // OrchestratorConfiguration
 // ---------------------------------------------------------------------------------

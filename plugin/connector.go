@@ -1,10 +1,9 @@
 package plugin
 
-import (
-)
+import ()
 
 type Exposer interface {
-   Ping() bool
-   Describe() string
-   Run() string
+	Ping() bool
+	Describe() string
+	Run(data string) string
 }

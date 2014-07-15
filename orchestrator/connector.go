@@ -2,13 +2,14 @@ package orchestrator
 
 import (
 	"errors"
+
 	"github.com/influxproxy/influxproxy/plugin"
 )
 
 // The interface that is exposed via rpc by the orchestrator. the channel
 // c is used to send data to the orchestrator
 type Connector struct {
-	c chan *ConnectorData
+	c        chan *ConnectorData
 	Registry *PluginRegistry
 }
 
@@ -24,7 +25,7 @@ func NewConnector(c chan *ConnectorData, reg *PluginRegistry) (*Connector, error
 		return nil, errors.New("No channel specified")
 	} else {
 		o := &Connector{
-			c: c,
+			c:        c,
 			Registry: reg,
 		}
 		return o, nil
@@ -36,7 +37,7 @@ func (c *Connector) Handshake(plugin plugin.Fingerprint, ok *bool) error {
 	if p == nil {
 		*ok = false
 		return errors.New("Plugin not found")
-	} 
+	}
 	p.Port = plugin.Port
 	p.Status.Connected = true
 	*ok = true
