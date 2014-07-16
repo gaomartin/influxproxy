@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	orch "github.com/influxproxy/influxproxy/orchestrator"
 )
@@ -29,11 +29,11 @@ func getConf(prefix string) *orch.OrchestratorConfiguration {
 }
 
 func main() {
-	o, err := orch.NewOrchestrator(getConf("ORCH"))
+	c := getConf("INFLUXPROXY")
+	o, err := orch.NewOrchestrator(c)
 	if err != nil {
-		log.Print(err)
+		log.Panic(err)
 	}
-	log.Print(o.Config.Print())
 
 	messages, err := o.Start()
 	for _, message := range messages {
@@ -42,19 +42,4 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-
-	p := o.Registry.GetPluginByName("a")
-	str, err := p.Describe()
-	if err != nil {
-		log.Print(err)
-	} else {
-		log.Print(str)
-	}
-
-	// wait a bit
-	var input string
-	fmt.Scanln(&input)
-
-	//TODO: Spawned processes will life forever, needs some cleanup
-	log.Print(o.Registry.Print())
 }

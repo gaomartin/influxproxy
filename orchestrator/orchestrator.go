@@ -22,6 +22,9 @@ type Orchestrator struct {
 
 // NewOrchestrator returnd a fully initialized orchestrator
 func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
+	if conf.Address == "" || conf.MaxPort == 0 || conf.MinPort == 0 {
+		return nil, errors.New("Insufficent orchestrator configuration")
+	}
 	var out string
 	var err error
 

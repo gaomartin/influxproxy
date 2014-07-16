@@ -101,12 +101,16 @@ func (p *Plugin) Run(e Exposer) {
 	go p.launch(c, e)
 	p.Fingerprint.Port = <-c
 	p.handshake()
-	go p.ping(keepalive)
+	go func() {
+		for {
+			time.Sleep(10 * time.Second)
+			p.ping(keepalive)
+		}
+	}()
 	<-keepalive
 }
 
 func (p *Plugin) ping(c chan bool) {
-	time.Sleep(30 * time.Second)
 	var reply bool
 	call := new([]interface{})
 	err := p.Client.Call("Connector.Ping", *call, &reply)
