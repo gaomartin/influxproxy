@@ -23,6 +23,7 @@ type PluginBroker struct {
 	Address   string
 	Port      int
 	ReadyChan chan bool
+	Args      *[]plugin.Argument
 	Client    *rpc.Client
 	Status    *PluginStatus
 }
@@ -37,11 +38,14 @@ func NewPluginBroker(name string, path string, address string) (*PluginBroker, e
 
 	c := make(chan bool)
 
+	args := new([]plugin.Argument)
+
 	p := &PluginBroker{
 		Name:      name,
 		Path:      path,
 		Address:   address,
 		Port:      0,
+		Args:      args,
 		ReadyChan: c,
 		Client:    nil,
 		Status:    s,
