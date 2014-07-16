@@ -6,6 +6,8 @@ import (
 	"net/rpc"
 	"os"
 	"os/exec"
+
+	"github.com/influxproxy/influxproxy/plugin"
 )
 
 // ---------------------------------------------------------------------------------
@@ -73,15 +75,15 @@ func (p *PluginBroker) Ping() (bool, error) {
 	return reply, nil
 }
 
-func (p *PluginBroker) Describe() (string, error) {
+func (p *PluginBroker) Describe() (*plugin.Description, error) {
 	if !p.Status.Connected {
-		return "", errors.New("Plugin not connected")
+		return nil, errors.New("Plugin not connected")
 	}
-	var reply string
+	var reply *plugin.Description
 	call := new([]interface{})
 	err := p.Client.Call("Connector.Describe", *call, &reply)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	return reply, nil
 }

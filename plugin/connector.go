@@ -24,18 +24,18 @@ func (c *Connector) Ping(in []*interface{}, pong *bool) error {
 	return nil
 }
 
-func (c *Connector) Describe(in []*interface{}, description *string) error {
+func (c *Connector) Describe(in []*interface{}, description *Description) error {
 	*description = c.e.Describe()
 	return nil
 }
 
-func (c *Connector) Run(in []*interface{}, description *string) error {
-	*description = c.e.Run(in)
+func (c *Connector) Run(in []*interface{}, out *string) error {
+	*out = c.e.Run(in)
 	return nil
 }
 
 type Exposer interface {
 	Ping() bool
-	Describe() string
+	Describe() Description
 	Run(in []*interface{}) string
 }

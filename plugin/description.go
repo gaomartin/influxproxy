@@ -4,10 +4,11 @@ type Description struct {
 	Description string
 	Author      string
 	Version     string
-	Arguments   []*Argument
+	Arguments   []Argument
 }
 
 type Argument struct {
 	Name        string
 	Description string
+	Optional    bool
 }

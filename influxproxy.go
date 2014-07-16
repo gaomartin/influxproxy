@@ -48,10 +48,9 @@ func main() {
 	g.GET("in/:db/:queue/:plugin", func(c *gin.Context) {
 		p := o.Registry.GetPluginByName(c.Params.ByName("plugin"))
 		if p != nil {
-			//call := new([]interface{})
 			reply, err := p.Describe()
 			if err == nil {
-				c.String(200, reply)
+				c.String(200, reply.Description)
 			} else {
 				c.String(500, err.Error())
 			}
