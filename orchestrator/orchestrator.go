@@ -22,7 +22,7 @@ type Orchestrator struct {
 
 // NewOrchestrator returnd a fully initialized orchestrator
 func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
-	if conf.Address == "" || conf.MaxPort == 0 || conf.MinPort == 0 {
+	if conf.Address == "" || conf.PluginMaxPort == 0 || conf.PluginMinPort == 0 {
 		return nil, errors.New("Insufficent orchestrator configuration")
 	}
 	var out string
@@ -112,8 +112,8 @@ func (orch *Orchestrator) spinup(done chan bool) error {
 func (orch *Orchestrator) getEnv() []string {
 	env := []string{
 		fmt.Sprintf("ORCHESTRATOR_CONN_STRING=%s:%v", orch.Config.Address, orch.Port),
-		fmt.Sprintf("PLUGIN_MIN_PORT=%d", orch.Config.MinPort),
-		fmt.Sprintf("PLUGIN_MAX_PORT=%d", orch.Config.MaxPort),
+		fmt.Sprintf("PLUGIN_MIN_PORT=%d", orch.Config.PluginMinPort),
+		fmt.Sprintf("PLUGIN_MAX_PORT=%d", orch.Config.PluginMaxPort),
 		fmt.Sprintf("PLUGIN_ADDRESS=%s", orch.Config.Address),
 	}
 	env = append(os.Environ(), env...)
@@ -121,7 +121,7 @@ func (orch *Orchestrator) getEnv() []string {
 }
 
 func (orch *Orchestrator) getListener() (net.Listener, int, error) {
-	for port := orch.Config.MinPort; port <= orch.Config.MaxPort; port++ {
+	for port := orch.Config.PluginMinPort; port <= orch.Config.PluginMaxPort; port++ {
 		connection := fmt.Sprintf("%s:%d", orch.Config.Address, port)
 		listener, err := net.Listen("tcp", connection)
 		if err == nil {
@@ -138,13 +138,8 @@ func (orch *Orchestrator) getListener() (net.Listener, int, error) {
 
 // OrchestratorConfiguration hold all required configuration data
 type OrchestratorConfiguration struct {
-	Address string
-	MinPort int
-	MaxPort int
-	Plugins []string
-}
-
-// Print() dumps the orchestrator configuration to string
-func (c *OrchestratorConfiguration) Print() string {
-	return fmt.Sprintf("\nCONFIGURATION\n    Address:   %v\n    MinPort:   %v\n    MaxPort:   %v\n    Plugins:   %v", c.Address, c.MinPort, c.MaxPort, c.Plugins)
+	Address       string
+	PluginMinPort int
+	PluginMaxPort int
+	Plugins       []string
 }

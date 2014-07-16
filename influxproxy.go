@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -13,22 +14,30 @@ import (
 	orch "github.com/influxproxy/influxproxy/orchestrator"
 )
 
-func getConf(prefix string) *orch.OrchestratorConfiguration {
+func getOrchestratorConf(prefix string) *orch.OrchestratorConfiguration {
 	if prefix != "" {
 		prefix = prefix + "_"
 	}
 
-	minport, _ := strconv.Atoi(os.Getenv(prefix + "MINPORT"))
-	maxport, _ := strconv.Atoi(os.Getenv(prefix + "MAXPORT"))
+	minport, _ := strconv.Atoi(os.Getenv(prefix + "PLUGINMINPORT"))
+	maxport, _ := strconv.Atoi(os.Getenv(prefix + "PLUGINMAXPORT"))
 
 	config := orch.OrchestratorConfiguration{
-		Address: os.Getenv(prefix + "ADDRESS"),
-		MinPort: minport,
-		MaxPort: maxport,
-		Plugins: strings.Split(os.Getenv(prefix+"PLUGINS"), ","),
+		Address:       os.Getenv(prefix + "ADDRESS"),
+		PluginMinPort: minport,
+		PluginMaxPort: maxport,
+		Plugins:       strings.Split(os.Getenv(prefix+"PLUGINS"), ","),
 	}
 
 	return &config
+}
+
+func getConf(prefix string) string {
+	if prefix != "" {
+		prefix = prefix + "_"
+	}
+	connStr := fmt.Sprintf("%s:%s", os.Getenv(prefix+"ADDRESS"), os.Getenv(prefix+"PORT"))
+	return connStr
 }
 
 func getBodyAsString(body io.ReadCloser) (string, error) {
@@ -40,7 +49,7 @@ func getBodyAsString(body io.ReadCloser) (string, error) {
 }
 
 func main() {
-	c := getConf("INFLUXPROXY")
+	c := getOrchestratorConf("INFLUXPROXY")
 	o, err := orch.NewOrchestrator(c)
 	if err != nil {
 		log.Panic(err)
@@ -105,5 +114,5 @@ func main() {
 		}
 	})
 
-	g.Run(":8080")
+	g.Run(getConf("INFLUXPROXY"))
 }
