@@ -2,6 +2,8 @@ package orchestrator
 
 import (
 	"errors"
+	"fmt"
+	"net/rpc"
 
 	"github.com/influxproxy/influxproxy/plugin"
 )
@@ -39,7 +41,27 @@ func (c *Connector) Handshake(plugin plugin.Fingerprint, ok *bool) error {
 		return errors.New("Plugin not found")
 	}
 	p.Port = plugin.Port
+	p.Status.Handshaked = true
+	client, err := c.connect(p)
+	if err != nil {
+		*ok = false
+		return err
+	}
+	p.Client = client
 	p.Status.Connected = true
-	*ok = true
+	ping, err := p.Ping()
+	*ok = ping
+	if err != nil {
+		return errors.New("Plugin could not be pinged")
+	}
 	return nil
+}
+
+func (c *Connector) connect(p *PluginBroker) (*rpc.Client, error) {
+	connStr := fmt.Sprintf("%s:%v", p.Address, p.Port)
+	client, err := rpc.Dial("tcp", connStr)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
 }

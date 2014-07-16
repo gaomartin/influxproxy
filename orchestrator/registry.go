@@ -12,14 +12,14 @@ func NewPluginRegistry() *PluginRegistry {
 	return &PluginRegistry{}
 }
 
-func (r *PluginRegistry) RegisterPlugin(path string) error {
+func (r *PluginRegistry) RegisterPlugin(path string, address string) error {
 	name := filepath.Base(path)
 	for _, p := range *r {
 		if p.Name == name {
 			return errors.New("Plugin '" + name + "' is already registered, '" + path + "' not registered. ")
 		}
 	}
-	p, _ := NewPluginBroker(name, path)
+	p, _ := NewPluginBroker(name, path, address)
 	*r = append(*r, p)
 	return nil
 }

@@ -36,8 +36,18 @@ func main() {
 	log.Print(o.Config.Print())
 	o.Start()
 
-	// wait a bit
 	var input string
+	fmt.Scanln(&input)
+
+	p := o.Registry.GetPluginByName("a")
+	str, err := p.Describe()
+	if err != nil {
+		log.Print(err)
+	} else {
+		log.Print(str)
+	}
+
+	// wait a bit
 	fmt.Scanln(&input)
 
 	//TODO: Spawned processes will life forever, needs some cleanup

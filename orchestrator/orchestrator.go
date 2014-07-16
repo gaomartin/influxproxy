@@ -32,7 +32,7 @@ func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
 	o.Registry = NewPluginRegistry()
 
 	for _, plugin := range o.Config.Plugins {
-		err = o.Registry.RegisterPlugin(plugin)
+		err = o.Registry.RegisterPlugin(plugin, o.Config.Address)
 		if err != nil {
 			out += err.Error()
 		}
@@ -48,7 +48,7 @@ func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
 func (orch *Orchestrator) Start() error {
 	// get the orchestrator itself started
 	orchChan := make(chan bool)
-	go orch.Spinup(orchChan)
+	go orch.spinup(orchChan)
 	<-orchChan
 
 	// get plugins started concurrently
@@ -65,7 +65,7 @@ func (orch *Orchestrator) Start() error {
 }
 
 // Inits the Orchestrator
-func (orch *Orchestrator) Spinup(done chan bool) error {
+func (orch *Orchestrator) spinup(done chan bool) error {
 	connectorChan := make(chan *ConnectorData)
 	connector, err := NewConnector(connectorChan, orch.Registry)
 	if err != nil {
