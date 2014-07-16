@@ -48,13 +48,32 @@ func main() {
 	g.GET("in/:db/:queue/:plugin", func(c *gin.Context) {
 		p := o.Registry.GetPluginByName(c.Params.ByName("plugin"))
 		if p != nil {
-			reply := p.Name //, _ := p.Describe()
-			c.String(200, reply)
+			//call := new([]interface{})
+			reply, err := p.Describe()
+			if err == nil {
+				c.String(200, reply)
+			} else {
+				c.String(500, err.Error())
+			}
 		} else {
 			c.String(404, c.Params.ByName("plugin")+" does not exist")
 		}
 	})
 
+	g.POST("in/:db/:queue/:plugin", func(c *gin.Context) {
+		p := o.Registry.GetPluginByName(c.Params.ByName("plugin"))
+		if p != nil {
+			call := new([]interface{})
+			reply, err := p.Run(*call)
+			if err == nil {
+				c.String(200, reply)
+			} else {
+				c.String(500, err.Error())
+			}
+		} else {
+			c.String(404, c.Params.ByName("plugin")+" does not exist")
+		}
+	})
 	g.GET("/plugins", func(c *gin.Context) {
 		c.String(200, o.Registry.Print())
 	})
