@@ -35,14 +35,14 @@ func (c *Connector) Handshake(plugin plugin.Fingerprint, ok *bool) error {
 		*ok = false
 		return err
 	}
-	p.Client = client
+	p.client = client
 	p.Status.Connected = true
 	ping, err := p.Ping()
 	*ok = ping
 	if err != nil {
 		return errors.New("Plugin could not be pinged")
 	}
-	p.ReadyChan <- true
+	p.readyChan <- true
 	return nil
 }
 

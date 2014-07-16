@@ -32,11 +32,3 @@ func (r *PluginRegistry) GetPluginByName(name string) *PluginBroker {
 	}
 	return nil
 }
-
-func (r *PluginRegistry) Print() string {
-	var out string
-	for i, p := range *r {
-		out += fmt.Sprintf("\nPLUGIN %v\n    Name:   %v\n    Path:   %v\n    Port:   %v\n    Status: %v", i, p.Name, p.Path, p.Port, p.Status.Print())
-	}
-	return out
-}

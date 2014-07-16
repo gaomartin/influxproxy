@@ -88,11 +88,21 @@ func main() {
 		}
 	})
 	g.GET("/plugins", func(c *gin.Context) {
-		c.String(200, o.Registry.Print())
+		b, err := json.Marshal(o.Registry)
+		if err == nil {
+			c.String(200, string(b))
+		} else {
+			c.String(500, err.Error())
+		}
 	})
 
 	g.GET("/config", func(c *gin.Context) {
-		c.String(200, o.Config.Print())
+		b, err := json.Marshal(o.Config)
+		if err == nil {
+			c.String(200, string(b))
+		} else {
+			c.String(500, err.Error())
+		}
 	})
 
 	g.Run(":8080")

@@ -22,9 +22,9 @@ type PluginBroker struct {
 	Path      string
 	Address   string
 	Port      int
-	ReadyChan chan bool
+	readyChan chan bool
 	Args      *[]plugin.Argument
-	Client    *rpc.Client
+	client    *rpc.Client
 	Status    *PluginStatus
 }
 
@@ -46,8 +46,8 @@ func NewPluginBroker(name string, path string, address string) (*PluginBroker, e
 		Address:   address,
 		Port:      0,
 		Args:      args,
-		ReadyChan: c,
-		Client:    nil,
+		readyChan: c,
+		client:    nil,
 		Status:    s,
 	}
 
@@ -59,7 +59,7 @@ func (p *PluginBroker) Spinup(orch *Orchestrator) error {
 	c := make(chan error)
 	go p.launch(c, orch)
 	err := <-c
-	<-p.ReadyChan
+	<-p.readyChan
 
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func (p *PluginBroker) Ping() (bool, error) {
 	}
 	var reply bool
 	call := new([]interface{})
-	err := p.Client.Call("Connector.Ping", *call, &reply)
+	err := p.client.Call("Connector.Ping", *call, &reply)
 	if err != nil {
 		return false, err
 	}
@@ -86,7 +86,7 @@ func (p *PluginBroker) Describe() (*plugin.Description, error) {
 	}
 	var reply *plugin.Description
 	call := new([]interface{})
-	err := p.Client.Call("Connector.Describe", *call, &reply)
+	err := p.client.Call("Connector.Describe", *call, &reply)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (p *PluginBroker) Run(data string) (*[]influxdb.Series, error) {
 		return reply, errors.New("Plugin not connected")
 	}
 
-	err := p.Client.Call("Connector.Run", data, &reply)
+	err := p.client.Call("Connector.Run", data, &reply)
 	if err != nil {
 		return reply, err
 	}
@@ -134,7 +134,7 @@ func (p *PluginBroker) fail(c chan error, err error) {
 	p.reset()
 	p.Status.FailCount += 1
 	c <- err
-	p.ReadyChan <- false
+	p.readyChan <- false
 }
 
 func (p *PluginBroker) watch(c chan error, cmd *exec.Cmd, exitCh chan struct{}) {
@@ -157,7 +157,7 @@ func (p *PluginBroker) cleanup(c chan error, err error, cmd *exec.Cmd) {
 
 func (p *PluginBroker) reset() {
 	p.Port = 0
-	p.Client = nil
+	p.client = nil
 	p.Status.Started = false
 	p.Status.Handshaked = false
 	p.Status.Connected = false
@@ -172,8 +172,4 @@ type PluginStatus struct {
 	Handshaked bool
 	Connected  bool
 	FailCount  int
-}
-
-func (s *PluginStatus) Print() string {
-	return fmt.Sprintf("\n       Started:    %v\n       Handshaked: %v\n       Connected:  %v\n       Failed:     %v\n", s.Started, s.Handshaked, s.Connected, s.FailCount)
 }
