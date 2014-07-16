@@ -112,6 +112,7 @@ func (p *PluginBroker) launch(c chan error, orch *Orchestrator) {
 
 func (p *PluginBroker) fail(c chan error, err error) {
 	p.reset()
+	p.Status.FailCount += 1
 	c <- err
 	p.ReadyChan <- false
 }
@@ -140,7 +141,6 @@ func (p *PluginBroker) reset() {
 	p.Status.Started = false
 	p.Status.Handshaked = false
 	p.Status.Connected = false
-	p.Status.FailCount += 1
 }
 
 // ---------------------------------------------------------------------------------
