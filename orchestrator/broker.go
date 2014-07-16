@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/influxdb/influxdb-go"
 	"github.com/influxproxy/influxproxy/plugin"
 )
 
@@ -88,14 +89,15 @@ func (p *PluginBroker) Describe() (*plugin.Description, error) {
 	return reply, nil
 }
 
-func (p *PluginBroker) Run(data []interface{}) (string, error) {
+func (p *PluginBroker) Run(data string) (*[]influxdb.Series, error) {
+	var reply *[]influxdb.Series
 	if !p.Status.Connected {
-		return "", errors.New("Plugin not connected")
+		return reply, errors.New("Plugin not connected")
 	}
-	var reply string
+
 	err := p.Client.Call("Connector.Run", data, &reply)
 	if err != nil {
-		return "", err
+		return reply, err
 	}
 	return reply, nil
 }

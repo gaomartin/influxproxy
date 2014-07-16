@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -27,6 +29,14 @@ func getConf(prefix string) *orch.OrchestratorConfiguration {
 	}
 
 	return &config
+}
+
+func getBodyAsString(body io.ReadCloser) (string, error) {
+	out, err := ioutil.ReadAll(body)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }
 
 func main() {
@@ -65,10 +75,11 @@ func main() {
 	g.POST("in/:db/:queue/:plugin", func(c *gin.Context) {
 		p := o.Registry.GetPluginByName(c.Params.ByName("plugin"))
 		if p != nil {
-			call := new([]interface{})
-			reply, err := p.Run(*call)
+			call, err := getBodyAsString(c.Req.Body)
+			reply, err := p.Run(call)
+			b, err := json.Marshal(reply)
 			if err == nil {
-				c.String(200, reply)
+				c.String(200, string(b))
 			} else {
 				c.String(500, err.Error())
 			}
