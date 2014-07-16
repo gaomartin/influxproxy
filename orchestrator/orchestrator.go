@@ -45,25 +45,39 @@ func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
 }
 
 // Starts the orchestrator instance and all its Plugins concurrently
-func (orch *Orchestrator) Start() error {
+func (orch *Orchestrator) Start() ([]string, error) {
+	var err error
+	var messages []string
+
 	// get the orchestrator itself started
 	orchChan := make(chan bool)
 	go func() {
-		orch.spinup(orchChan)
+		err = orch.spinup(orchChan)
 	}()
 	<-orchChan
+	if err != nil {
+		messages = append(messages, "Could not launch orchestrator")
+		return messages, err
+	}
+
+	messages = append(messages, fmt.Sprintf("Orchestrator started on port %v.", orch.Port))
 
 	// get plugins started concurrently
 	pluginChan := make(chan bool)
 	go func() {
 		for _, plugin := range *orch.Registry {
-			plugin.Spinup(orch)
+			err = plugin.Spinup(orch)
+			if err != nil {
+				messages = append(messages, fmt.Sprintf("Plugin %s could not be loaded: %s. ", plugin.Name, err))
+			} else {
+				messages = append(messages, fmt.Sprintf("Plugin %s successfully loaded. ", plugin.Name))
+			}
 		}
 		pluginChan <- true
 	}()
 	<-pluginChan
-
-	return nil
+	messages = append(messages, "All plugins loaded")
+	return messages, nil
 }
 
 // Inits the Orchestrator
@@ -79,8 +93,6 @@ func (orch *Orchestrator) spinup(done chan bool) error {
 	}
 
 	orch.Port = port
-	out := fmt.Sprintf("Orchestrator is listening on port %v", orch.Port)
-	fmt.Println(out)
 	done <- true
 
 	for {

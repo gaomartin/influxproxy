@@ -34,7 +34,14 @@ func main() {
 		log.Print(err)
 	}
 	log.Print(o.Config.Print())
-	o.Start()
+
+	messages, err := o.Start()
+	for _, message := range messages {
+		log.Print(message)
+	}
+	if err != nil {
+		log.Panic(err)
+	}
 
 	p := o.Registry.GetPluginByName("a")
 	str, err := p.Describe()
