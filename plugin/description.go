@@ -1,14 +1,14 @@
 package plugin
 
 type Description struct {
-	Description string
-	Author      string
-	Version     string
-	Arguments   []Argument
+	Description string     `json:"description"`
+	Author      string     `json:"author"`
+	Version     string     `json:"version"`
+	Arguments   []Argument `json:"arguments"`
 }
 
 type Argument struct {
-	Name        string
-	Description string
-	Optional    bool
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Optional    bool   `json:"optional"`
 }

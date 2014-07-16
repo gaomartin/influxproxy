@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"strconv"
@@ -49,8 +50,10 @@ func main() {
 		p := o.Registry.GetPluginByName(c.Params.ByName("plugin"))
 		if p != nil {
 			reply, err := p.Describe()
+			//TODO: Nice error handling
+			b, err := json.Marshal(reply)
 			if err == nil {
-				c.String(200, reply.Description)
+				c.String(200, string(b))
 			} else {
 				c.String(500, err.Error())
 			}
