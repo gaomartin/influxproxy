@@ -48,7 +48,9 @@ func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
 func (orch *Orchestrator) Start() error {
 	// get the orchestrator itself started
 	orchChan := make(chan bool)
-	go orch.spinup(orchChan)
+	go func() {
+		orch.spinup(orchChan)
+	}()
 	<-orchChan
 
 	// get plugins started concurrently
@@ -66,11 +68,7 @@ func (orch *Orchestrator) Start() error {
 
 // Inits the Orchestrator
 func (orch *Orchestrator) spinup(done chan bool) error {
-	connectorChan := make(chan *ConnectorData)
-	connector, err := NewConnector(connectorChan, orch.Registry)
-	if err != nil {
-		return err
-	}
+	connector := NewConnector(orch.Registry)
 	orch.Connector = connector
 
 	rpc.Register(orch.Connector)
