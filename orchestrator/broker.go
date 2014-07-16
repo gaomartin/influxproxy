@@ -60,9 +60,22 @@ func (p *PluginBroker) Spinup(orch *Orchestrator) error {
 	return nil
 }
 
+func (p *PluginBroker) Ping() (bool, error) {
+	if !p.Status.Connected {
+		return false, errors.New("Plugin not connected")
+	}
+	var reply bool
+	call := new([]interface{})
+	err := p.Client.Call("Connector.Ping", *call, &reply)
+	if err != nil {
+		return false, err
+	}
+	return reply, nil
+}
+
 func (p *PluginBroker) Describe() (string, error) {
 	if !p.Status.Connected {
-		return "", errors.New("Plugin not yet connected")
+		return "", errors.New("Plugin not connected")
 	}
 	var reply string
 	call := new([]interface{})
@@ -73,15 +86,14 @@ func (p *PluginBroker) Describe() (string, error) {
 	return reply, nil
 }
 
-func (p *PluginBroker) Ping() (bool, error) {
+func (p *PluginBroker) Run(data []interface{}) (string, error) {
 	if !p.Status.Connected {
-		return false, errors.New("Plugin not yet connected")
+		return "", errors.New("Plugin not connected")
 	}
-	var reply bool
-	call := new([]interface{})
-	err := p.Client.Call("Connector.Ping", *call, &reply)
+	var reply string
+	err := p.Client.Call("Connector.Run", data, &reply)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 	return reply, nil
 }

@@ -46,6 +46,11 @@ func (c *Connector) Handshake(plugin plugin.Fingerprint, ok *bool) error {
 	return nil
 }
 
+func (c *Connector) Ping(in []*interface{}, pong *bool) error {
+	*pong = true
+	return nil
+}
+
 func (c *Connector) connect(p *PluginBroker) (*rpc.Client, error) {
 	connStr := fmt.Sprintf("%s:%v", p.Address, p.Port)
 	client, err := rpc.Dial("tcp", connStr)

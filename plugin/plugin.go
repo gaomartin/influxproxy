@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 )
 
 type Fingerprint struct {
@@ -26,6 +27,7 @@ type PluginConfiguration struct {
 type Plugin struct {
 	Config      *PluginConfiguration
 	Fingerprint *Fingerprint
+	Client      *rpc.Client
 }
 
 func NewPlugin() (*Plugin, error) {
@@ -84,21 +86,33 @@ func (p *Plugin) launch(c chan int, e Exposer) error {
 	}
 	c <- port
 	for {
-		c, err := ln.Accept()
+		con, err := ln.Accept()
 		if err != nil {
 			continue
 		}
-		go rpc.ServeConn(c)
+		go rpc.ServeConn(con)
 	}
 	return nil
 }
 
 func (p *Plugin) Run(e Exposer) {
+	keepalive := make(chan bool)
 	c := make(chan int)
 	go p.launch(c, e)
 	p.Fingerprint.Port = <-c
 	p.handshake()
-	// TODO: make the plugin run forever
+	go p.ping(keepalive)
+	<-keepalive
+}
+
+func (p *Plugin) ping(c chan bool) {
+	time.Sleep(30 * time.Second)
+	var reply bool
+	call := new([]interface{})
+	err := p.Client.Call("Connector.Ping", *call, &reply)
+	if err != nil {
+		c <- true
+	}
 }
 
 func (p *Plugin) handshake() bool {
@@ -111,5 +125,6 @@ func (p *Plugin) handshake() bool {
 	if err != nil {
 		log.Fatal(err)
 	}
+	p.Client = client
 	return reply
 }
