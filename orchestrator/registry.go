@@ -2,7 +2,6 @@ package orchestrator
 
 import (
 	"errors"
-	"fmt"
 	"path/filepath"
 )
 

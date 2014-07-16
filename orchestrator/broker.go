@@ -2,7 +2,6 @@ package orchestrator
 
 import (
 	"errors"
-	"fmt"
 	"net/rpc"
 	"os"
 	"os/exec"
