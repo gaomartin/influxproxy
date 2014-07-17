@@ -65,54 +65,62 @@ func main() {
 
 	g := gin.Default()
 
-	g.GET("in/:db/:plugin", func(c *gin.Context) {
-		b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
-		if b != nil {
-			reply, err := b.Describe()
-			//TODO: Nice error handling
-			text, err := json.Marshal(reply)
+	in := g.Group("/in")
+	{
+
+		in.GET("/:db/:plugin", func(c *gin.Context) {
+			b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
+			if b != nil {
+				reply, err := b.Describe()
+				//TODO: Nice error handling
+				text, err := json.Marshal(reply)
+				if err == nil {
+					c.String(200, string(text))
+				} else {
+					c.String(500, err.Error())
+				}
+			} else {
+				c.String(404, c.Params.ByName("plugin")+" does not exist")
+			}
+		})
+
+		in.POST("/:db/:plugin", func(c *gin.Context) {
+			b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
+			if b != nil {
+				call, err := getBodyAsString(c.Req.Body)
+				reply, err := b.Run(call)
+				text, err := json.Marshal(reply)
+				if err == nil {
+					c.String(200, string(text))
+				} else {
+					c.String(500, err.Error())
+				}
+			} else {
+				c.String(404, c.Params.ByName("plugin")+" does not exist")
+			}
+		})
+	}
+
+	admin := g.Group("/admin")
+	{
+		admin.GET("/brokers", func(c *gin.Context) {
+			b, err := json.Marshal(o.Registry)
 			if err == nil {
-				c.String(200, string(text))
+				c.String(200, string(b))
 			} else {
 				c.String(500, err.Error())
 			}
-		} else {
-			c.String(404, c.Params.ByName("plugin")+" does not exist")
-		}
-	})
+		})
 
-	g.POST("in/:db/:plugin", func(c *gin.Context) {
-		b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
-		if b != nil {
-			call, err := getBodyAsString(c.Req.Body)
-			reply, err := b.Run(call)
-			text, err := json.Marshal(reply)
+		admin.GET("/config", func(c *gin.Context) {
+			b, err := json.Marshal(o.Config)
 			if err == nil {
-				c.String(200, string(text))
+				c.String(200, string(b))
 			} else {
 				c.String(500, err.Error())
 			}
-		} else {
-			c.String(404, c.Params.ByName("plugin")+" does not exist")
-		}
-	})
-	g.GET("/brokers", func(c *gin.Context) {
-		b, err := json.Marshal(o.Registry)
-		if err == nil {
-			c.String(200, string(b))
-		} else {
-			c.String(500, err.Error())
-		}
-	})
-
-	g.GET("/config", func(c *gin.Context) {
-		b, err := json.Marshal(o.Config)
-		if err == nil {
-			c.String(200, string(b))
-		} else {
-			c.String(500, err.Error())
-		}
-	})
+		})
+	}
 
 	g.Run(getConf("INFLUXPROXY"))
 }
