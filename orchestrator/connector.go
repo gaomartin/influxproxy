@@ -11,38 +11,38 @@ import (
 // The interface that is exposed via rpc by the orchestrator. the channel
 // c is used to send data to the orchestrator
 type Connector struct {
-	Registry *PluginRegistry
+	Registry *BrokerRegistry
 }
 
 // returns an orchestrator interface with a given channel
-func NewConnector(reg *PluginRegistry) *Connector {
+func NewConnector(reg *BrokerRegistry) *Connector {
 	o := &Connector{
 		Registry: reg,
 	}
 	return o
 }
 
-func (c *Connector) Handshake(plugin plugin.Fingerprint, ok *bool) error {
-	p := c.Registry.GetPluginByName(plugin.Name)
-	if p == nil {
+func (c *Connector) Handshake(p plugin.Fingerprint, ok *bool) error {
+	b := c.Registry.GetBrokerByName(p.Name)
+	if b == nil {
 		*ok = false
-		return errors.New("Plugin broker not found for " + plugin.Name)
+		return errors.New("Plugin broker not found for " + p.Name)
 	}
-	p.Port = plugin.Port
-	p.Status.Handshaked = true
-	client, err := c.connect(p)
+	b.Port = p.Port
+	b.Status.Handshaked = true
+	client, err := c.connect(b)
 	if err != nil {
 		*ok = false
 		return err
 	}
-	p.client = client
-	p.Status.Connected = true
-	ping, err := p.Ping()
+	b.client = client
+	b.Status.Connected = true
+	ping, err := b.Ping()
 	*ok = ping
 	if err != nil {
 		return errors.New("Plugin could not be pinged")
 	}
-	p.readyChan <- true
+	b.readyChan <- true
 	return nil
 }
 
@@ -51,8 +51,8 @@ func (c *Connector) Ping(in []*interface{}, pong *bool) error {
 	return nil
 }
 
-func (c *Connector) connect(p *PluginBroker) (*rpc.Client, error) {
-	connStr := fmt.Sprintf("%s:%v", p.Address, p.Port)
+func (c *Connector) connect(b *PluginBroker) (*rpc.Client, error) {
+	connStr := fmt.Sprintf("%s:%v", b.Address, b.Port)
 	client, err := rpc.Dial("tcp", connStr)
 	if err != nil {
 		return nil, err

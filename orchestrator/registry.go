@@ -5,28 +5,28 @@ import (
 	"path/filepath"
 )
 
-type PluginRegistry []*PluginBroker
+type BrokerRegistry []*PluginBroker
 
-func NewPluginRegistry() *PluginRegistry {
-	return &PluginRegistry{}
+func NewBrokerRegistry() *BrokerRegistry {
+	return &BrokerRegistry{}
 }
 
-func (r *PluginRegistry) RegisterPlugin(path string, address string) error {
+func (r *BrokerRegistry) RegisterBroker(path string, address string) error {
 	name := filepath.Base(path)
-	for _, p := range *r {
-		if p.Name == name {
-			return errors.New("Plugin '" + name + "' is already registered, '" + path + "' not registered. ")
+	for _, b := range *r {
+		if b.Name == name {
+			return errors.New("Broker of plugin '" + name + "' is already registered, '" + path + "' not registered. ")
 		}
 	}
-	p, _ := NewPluginBroker(name, path, address)
-	*r = append(*r, p)
+	b, _ := NewPluginBroker(name, path, address)
+	*r = append(*r, b)
 	return nil
 }
 
-func (r *PluginRegistry) GetPluginByName(name string) *PluginBroker {
-	for _, p := range *r {
-		if p.Name == name {
-			return p
+func (r *BrokerRegistry) GetBrokerByName(name string) *PluginBroker {
+	for _, b := range *r {
+		if b.Name == name {
+			return b
 		}
 	}
 	return nil

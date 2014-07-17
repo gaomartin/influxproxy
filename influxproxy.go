@@ -66,13 +66,13 @@ func main() {
 	g := gin.Default()
 
 	g.GET("in/:db/:queue/:plugin", func(c *gin.Context) {
-		p := o.Registry.GetPluginByName(c.Params.ByName("plugin"))
-		if p != nil {
-			reply, err := p.Describe()
+		b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
+		if b != nil {
+			reply, err := b.Describe()
 			//TODO: Nice error handling
-			b, err := json.Marshal(reply)
+			text, err := json.Marshal(reply)
 			if err == nil {
-				c.String(200, string(b))
+				c.String(200, string(text))
 			} else {
 				c.String(500, err.Error())
 			}
@@ -82,13 +82,13 @@ func main() {
 	})
 
 	g.POST("in/:db/:queue/:plugin", func(c *gin.Context) {
-		p := o.Registry.GetPluginByName(c.Params.ByName("plugin"))
-		if p != nil {
+		b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
+		if b != nil {
 			call, err := getBodyAsString(c.Req.Body)
-			reply, err := p.Run(call)
-			b, err := json.Marshal(reply)
+			reply, err := b.Run(call)
+			text, err := json.Marshal(reply)
 			if err == nil {
-				c.String(200, string(b))
+				c.String(200, string(text))
 			} else {
 				c.String(500, err.Error())
 			}
@@ -96,7 +96,7 @@ func main() {
 			c.String(404, c.Params.ByName("plugin")+" does not exist")
 		}
 	})
-	g.GET("/plugins", func(c *gin.Context) {
+	g.GET("/brokers", func(c *gin.Context) {
 		b, err := json.Marshal(o.Registry)
 		if err == nil {
 			c.String(200, string(b))

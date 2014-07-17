@@ -15,7 +15,7 @@ import (
 //
 type Orchestrator struct {
 	Config    *OrchestratorConfiguration
-	Registry  *PluginRegistry
+	Registry  *BrokerRegistry
 	Connector *Connector
 	Port      int
 }
@@ -32,10 +32,10 @@ func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
 		Config: conf,
 	}
 
-	o.Registry = NewPluginRegistry()
+	o.Registry = NewBrokerRegistry()
 
 	for _, plugin := range o.Config.Plugins {
-		err = o.Registry.RegisterPlugin(plugin, o.Config.Address)
+		err = o.Registry.RegisterBroker(plugin, o.Config.Address)
 		if err != nil {
 			out += err.Error()
 		}
@@ -66,19 +66,19 @@ func (orch *Orchestrator) Start() ([]string, error) {
 	messages = append(messages, fmt.Sprintf("Orchestrator started on port %v.", orch.Port))
 
 	// get plugins started concurrently
-	pluginChan := make(chan bool)
+	bChan := make(chan bool)
 	go func() {
-		for _, plugin := range *orch.Registry {
-			err = plugin.Spinup(orch)
+		for _, b := range *orch.Registry {
+			err = b.Spinup(orch)
 			if err != nil {
-				messages = append(messages, fmt.Sprintf("Plugin %s could not be loaded: %s. ", plugin.Name, err))
+				messages = append(messages, fmt.Sprintf("Plugin %s could not be loaded: %s. ", b.Name, err))
 			} else {
-				messages = append(messages, fmt.Sprintf("Plugin %s successfully loaded. ", plugin.Name))
+				messages = append(messages, fmt.Sprintf("Plugin %s successfully loaded. ", b.Name))
 			}
 		}
-		pluginChan <- true
+		bChan <- true
 	}()
-	<-pluginChan
+	<-bChan
 	messages = append(messages, "All plugins loaded")
 	return messages, nil
 }

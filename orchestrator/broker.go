@@ -36,7 +36,7 @@ func NewPluginBroker(name string, path string, address string) (*PluginBroker, e
 
 	c := make(chan bool)
 
-	p := &PluginBroker{
+	b := &PluginBroker{
 		Name:      name,
 		Path:      path,
 		Address:   address,
@@ -46,15 +46,15 @@ func NewPluginBroker(name string, path string, address string) (*PluginBroker, e
 		Status:    s,
 	}
 
-	return p, nil
+	return b, nil
 }
 
 // Maintains the start process of a plugin
-func (p *PluginBroker) Spinup(orch *Orchestrator) error {
+func (b *PluginBroker) Spinup(orch *Orchestrator) error {
 	c := make(chan error)
-	go p.launch(c, orch)
+	go b.launch(c, orch)
 	err := <-c
-	<-p.readyChan
+	<-b.readyChan
 
 	if err != nil {
 		return err
@@ -62,39 +62,39 @@ func (p *PluginBroker) Spinup(orch *Orchestrator) error {
 	return nil
 }
 
-func (p *PluginBroker) Ping() (bool, error) {
-	if !p.Status.Connected {
+func (b *PluginBroker) Ping() (bool, error) {
+	if !b.Status.Connected {
 		return false, errors.New("Plugin not connected")
 	}
 	var reply bool
 	call := new([]interface{})
-	err := p.client.Call("Connector.Ping", *call, &reply)
+	err := b.client.Call("Connector.Ping", *call, &reply)
 	if err != nil {
 		return false, err
 	}
 	return reply, nil
 }
 
-func (p *PluginBroker) Describe() (*plugin.Description, error) {
-	if !p.Status.Connected {
+func (b *PluginBroker) Describe() (*plugin.Description, error) {
+	if !b.Status.Connected {
 		return nil, errors.New("Plugin not connected")
 	}
 	var reply *plugin.Description
 	call := new([]interface{})
-	err := p.client.Call("Connector.Describe", *call, &reply)
+	err := b.client.Call("Connector.Describe", *call, &reply)
 	if err != nil {
 		return nil, err
 	}
 	return reply, nil
 }
 
-func (p *PluginBroker) Run(data string) (*[]influxdb.Series, error) {
+func (b *PluginBroker) Run(data string) (*[]influxdb.Series, error) {
 	var reply *[]influxdb.Series
-	if !p.Status.Connected {
+	if !b.Status.Connected {
 		return reply, errors.New("Plugin not connected")
 	}
 
-	err := p.client.Call("Connector.Run", data, &reply)
+	err := b.client.Call("Connector.Run", data, &reply)
 	if err != nil {
 		return reply, err
 	}
@@ -102,44 +102,44 @@ func (p *PluginBroker) Run(data string) (*[]influxdb.Series, error) {
 }
 
 // Launch the plugin binary
-func (p *PluginBroker) launch(c chan error, orch *Orchestrator) {
+func (b *PluginBroker) launch(c chan error, orch *Orchestrator) {
 
-	if _, err := os.Stat(p.Path); os.IsNotExist(err) {
-		p.fail(c, err)
+	if _, err := os.Stat(b.Path); os.IsNotExist(err) {
+		b.fail(c, err)
 		return
 	}
 
-	cmd := exec.Command(p.Path)
+	cmd := exec.Command(b.Path)
 	cmd.Env = append(cmd.Env, orch.getEnv()...)
 	err := cmd.Start()
 	if err != nil {
-		p.fail(c, err)
+		b.fail(c, err)
 		return
 	}
 
-	p.Status.Started = true
+	b.Status.Started = true
 
-	defer p.cleanup(c, err, cmd)
+	defer b.cleanup(c, err, cmd)
 
 	exitCh := make(chan struct{})
-	go p.watch(c, cmd, exitCh)
+	go b.watch(c, cmd, exitCh)
 }
 
-func (p *PluginBroker) fail(c chan error, err error) {
-	p.reset()
-	p.Status.FailCount += 1
+func (b *PluginBroker) fail(c chan error, err error) {
+	b.reset()
+	b.Status.FailCount += 1
 	c <- err
-	p.readyChan <- false
+	b.readyChan <- false
 }
 
-func (p *PluginBroker) watch(c chan error, cmd *exec.Cmd, exitCh chan struct{}) {
+func (b *PluginBroker) watch(c chan error, cmd *exec.Cmd, exitCh chan struct{}) {
 	cmd.Wait()
 	err := errors.New("Plugin ended")
-	p.fail(c, err)
+	b.fail(c, err)
 	close(exitCh)
 }
 
-func (p *PluginBroker) cleanup(c chan error, err error, cmd *exec.Cmd) {
+func (b *PluginBroker) cleanup(c chan error, err error, cmd *exec.Cmd) {
 	c <- nil
 	r := recover()
 	if err != nil || r != nil {
@@ -150,12 +150,12 @@ func (p *PluginBroker) cleanup(c chan error, err error, cmd *exec.Cmd) {
 	}
 }
 
-func (p *PluginBroker) reset() {
-	p.Port = 0
-	p.client = nil
-	p.Status.Started = false
-	p.Status.Handshaked = false
-	p.Status.Connected = false
+func (b *PluginBroker) reset() {
+	b.Port = 0
+	b.client = nil
+	b.Status.Started = false
+	b.Status.Handshaked = false
+	b.Status.Connected = false
 }
 
 // ---------------------------------------------------------------------------------
