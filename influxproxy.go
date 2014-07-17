@@ -65,7 +65,7 @@ func main() {
 
 	g := gin.Default()
 
-	g.GET("in/:db/:queue/:plugin", func(c *gin.Context) {
+	g.GET("in/:db/:plugin", func(c *gin.Context) {
 		b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
 		if b != nil {
 			reply, err := b.Describe()
