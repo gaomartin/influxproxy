@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/influxdb/influxdb-go"
 	orch "github.com/influxproxy/influxproxy/orchestrator"
 	"github.com/influxproxy/influxproxy/plugin"
 )
@@ -20,25 +21,38 @@ func getOrchestratorConf(prefix string) *orch.OrchestratorConfiguration {
 		prefix = prefix + "_"
 	}
 
-	minport, _ := strconv.Atoi(os.Getenv(prefix + "PLUGINMINPORT"))
-	maxport, _ := strconv.Atoi(os.Getenv(prefix + "PLUGINMAXPORT"))
+	minport, _ := strconv.Atoi(os.Getenv(prefix + "PLUGIN_MINPORT"))
+	maxport, _ := strconv.Atoi(os.Getenv(prefix + "PLUGIN_MAXPORT"))
 
-	config := orch.OrchestratorConfiguration{
-		Address:       os.Getenv(prefix + "ADDRESS"),
+	config := &orch.OrchestratorConfiguration{
+		Address:       os.Getenv(prefix + "PLUGIN_ADDRESS"),
 		PluginMinPort: minport,
 		PluginMaxPort: maxport,
 		Plugins:       strings.Split(os.Getenv(prefix+"PLUGINS"), ","),
 	}
 
-	return &config
+	return config
 }
 
-func getConf(prefix string) string {
+func getProxyConf(prefix string) string {
 	if prefix != "" {
 		prefix = prefix + "_"
 	}
 	connStr := fmt.Sprintf("%s:%s", os.Getenv(prefix+"ADDRESS"), os.Getenv(prefix+"PORT"))
 	return connStr
+}
+
+func getDbConf(prefix string, db string) *influxdb.ClientConfig {
+	if prefix != "" {
+		prefix = prefix + "_"
+	}
+	config := &influxdb.ClientConfig{
+		Username: os.Getenv(prefix + "DB_USER"),
+		Password: os.Getenv(prefix + "DB_PASSWORD"),
+		Database: db,
+		Host:     os.Getenv(prefix+"DB_ADDRESS") + ":" + os.Getenv(prefix+"DB_PORT"),
+	}
+	return config
 }
 
 func getBodyAsString(body io.ReadCloser) (string, error) {
@@ -130,5 +144,5 @@ func main() {
 		})
 	}
 
-	g.Run(getConf("INFLUXPROXY"))
+	g.Run(getProxyConf("INFLUXPROXY"))
 }
