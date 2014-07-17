@@ -30,7 +30,7 @@ func (c *Connector) Describe(in []*interface{}, description *Description) error 
 	return nil
 }
 
-func (c *Connector) Run(in string, out *[]influxdb.Series) error {
+func (c *Connector) Run(in Request, out *[]influxdb.Series) error {
 	*out = c.e.Run(in)
 	return nil
 }
@@ -38,5 +38,5 @@ func (c *Connector) Run(in string, out *[]influxdb.Series) error {
 type Exposer interface {
 	Ping() bool
 	Describe() Description
-	Run(in string) []influxdb.Series
+	Run(in Request) []influxdb.Series
 }

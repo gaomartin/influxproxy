@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	orch "github.com/influxproxy/influxproxy/orchestrator"
+	"github.com/influxproxy/influxproxy/plugin"
 )
 
 func getOrchestratorConf(prefix string) *orch.OrchestratorConfiguration {
@@ -87,7 +88,12 @@ func main() {
 		in.POST("/:db/:plugin", func(c *gin.Context) {
 			b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
 			if b != nil {
-				call, err := getBodyAsString(c.Req.Body)
+				body, err := getBodyAsString(c.Req.Body)
+				query := c.Req.URL.Query()
+				call := plugin.Request{
+					Query: query,
+					Body:  body,
+				}
 				reply, err := b.Run(call)
 				text, err := json.Marshal(reply)
 				if err == nil {

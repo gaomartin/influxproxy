@@ -88,7 +88,7 @@ func (b *PluginBroker) Describe() (*plugin.Description, error) {
 	return reply, nil
 }
 
-func (b *PluginBroker) Run(data string) (*[]influxdb.Series, error) {
+func (b *PluginBroker) Run(data plugin.Request) (*[]influxdb.Series, error) {
 	var reply *[]influxdb.Series
 	if !b.Status.Connected {
 		return reply, errors.New("Plugin not connected")
