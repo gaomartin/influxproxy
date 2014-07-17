@@ -95,11 +95,13 @@ func main() {
 					Body:  body,
 				}
 				reply, err := b.Run(call)
-				text, err := json.Marshal(reply)
-				if err == nil {
-					c.String(200, string(text))
-				} else {
+				series, err := json.Marshal(reply.Series)
+				if err != nil {
 					c.String(500, err.Error())
+				} else if reply.Error != "" {
+					c.String(500, reply.Error)
+				} else {
+					c.String(200, string(series))
 				}
 			} else {
 				c.String(404, c.Params.ByName("plugin")+" does not exist")

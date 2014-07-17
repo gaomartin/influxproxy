@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"errors"
-	"github.com/influxdb/influxdb-go"
 )
 
 type Connector struct {
@@ -30,7 +29,7 @@ func (c *Connector) Describe(in []*interface{}, description *Description) error 
 	return nil
 }
 
-func (c *Connector) Run(in Request, out *[]influxdb.Series) error {
+func (c *Connector) Run(in Request, out *Response) error {
 	*out = c.e.Run(in)
 	return nil
 }
@@ -38,5 +37,5 @@ func (c *Connector) Run(in Request, out *[]influxdb.Series) error {
 type Exposer interface {
 	Ping() bool
 	Describe() Description
-	Run(in Request) []influxdb.Series
+	Run(in Request) Response
 }
