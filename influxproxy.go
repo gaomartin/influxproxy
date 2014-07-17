@@ -81,7 +81,7 @@ func main() {
 		}
 	})
 
-	g.POST("in/:db/:queue/:plugin", func(c *gin.Context) {
+	g.POST("in/:db/:plugin", func(c *gin.Context) {
 		b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
 		if b != nil {
 			call, err := getBodyAsString(c.Req.Body)
