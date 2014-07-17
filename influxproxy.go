@@ -16,7 +16,13 @@ import (
 	"github.com/influxproxy/influxproxy/plugin"
 )
 
-func getOrchestratorConf(prefix string) *orch.OrchestratorConfiguration {
+type Configuration struct {
+	Orchestrator *orch.OrchestratorConfiguration
+	Influxdb     *influxdb.ClientConfig
+	Proxy        string
+}
+
+func GetConf(prefix string) *Configuration {
 	if prefix != "" {
 		prefix = prefix + "_"
 	}
@@ -24,35 +30,28 @@ func getOrchestratorConf(prefix string) *orch.OrchestratorConfiguration {
 	minport, _ := strconv.Atoi(os.Getenv(prefix + "PLUGIN_MINPORT"))
 	maxport, _ := strconv.Atoi(os.Getenv(prefix + "PLUGIN_MAXPORT"))
 
-	config := &orch.OrchestratorConfiguration{
+	orch := &orch.OrchestratorConfiguration{
 		Address:       os.Getenv(prefix + "PLUGIN_ADDRESS"),
 		PluginMinPort: minport,
 		PluginMaxPort: maxport,
 		Plugins:       strings.Split(os.Getenv(prefix+"PLUGINS"), ","),
 	}
 
-	return config
-}
-
-func getProxyConf(prefix string) string {
-	if prefix != "" {
-		prefix = prefix + "_"
-	}
-	connStr := fmt.Sprintf("%s:%s", os.Getenv(prefix+"ADDRESS"), os.Getenv(prefix+"PORT"))
-	return connStr
-}
-
-func getDbConf(prefix string, db string) *influxdb.ClientConfig {
-	if prefix != "" {
-		prefix = prefix + "_"
-	}
-	config := &influxdb.ClientConfig{
+	db := &influxdb.ClientConfig{
 		Username: os.Getenv(prefix + "DB_USER"),
 		Password: os.Getenv(prefix + "DB_PASSWORD"),
-		Database: db,
+		Database: "",
 		Host:     os.Getenv(prefix+"DB_ADDRESS") + ":" + os.Getenv(prefix+"DB_PORT"),
 	}
+
+	config := &Configuration{
+		Orchestrator: orch,
+		Influxdb:     db,
+		Proxy:        os.Getenv(prefix+"ADDRESS") + ":" + os.Getenv(prefix+"PORT"),
+	}
+
 	return config
+
 }
 
 func getBodyAsString(body io.ReadCloser) (string, error) {
@@ -64,8 +63,8 @@ func getBodyAsString(body io.ReadCloser) (string, error) {
 }
 
 func main() {
-	c := getOrchestratorConf("INFLUXPROXY")
-	o, err := orch.NewOrchestrator(c)
+	c := GetConf("INFLUXPROXY")
+	o, err := orch.NewOrchestrator(c.Orchestrator)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -144,5 +143,5 @@ func main() {
 		})
 	}
 
-	g.Run(getProxyConf("INFLUXPROXY"))
+	g.Run(c.Proxy)
 }
