@@ -33,7 +33,6 @@ func NewConfiguration(prefix string) *Configuration {
 	db := &influxdb.ClientConfig{
 		Username: os.Getenv(prefix + "DB_USER"),
 		Password: os.Getenv(prefix + "DB_PASSWORD"),
-		Database: "",
 		Host:     os.Getenv(prefix+"DB_ADDRESS") + ":" + os.Getenv(prefix+"DB_PORT"),
 	}
 
