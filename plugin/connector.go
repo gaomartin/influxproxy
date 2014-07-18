@@ -20,7 +20,7 @@ func NewConnector(e Exposer) (*Connector, error) {
 }
 
 func (c *Connector) Ping(in []*interface{}, pong *bool) error {
-	*pong = c.e.Ping()
+	*pong = true
 	return nil
 }
 
@@ -35,7 +35,6 @@ func (c *Connector) Run(in Request, out *Response) error {
 }
 
 type Exposer interface {
-	Ping() bool
 	Describe() Description
 	Run(in Request) Response
 }
