@@ -13,34 +13,34 @@ type Dbs struct {
 }
 
 func NewDbs(settings *Influxdb) *Dbs {
-	var clients map[string]*influxdb.Client
+	//clients := make(map[string]*influxdb.Client)
 	return &Dbs{
 		Mutex:    &sync.Mutex{},
 		Settings: settings,
-		Clients:  clients,
+		Clients:  make(map[string]*influxdb.Client),
 	}
 }
 
-func (d *Dbs) Get(name string) (*influxdb.Client, error) {
-	d.Mutex.Lock()
-	defer d.Mutex.Unlock()
-
-	client, ok := d.Clients[name]
+func (dbs *Dbs) Get(name string) (*influxdb.Client, error) {
+	client, ok := dbs.Clients[name]
 
 	if !ok {
 
 		influx, err := influxdb.NewClient(&influxdb.ClientConfig{
-			Username: d.Settings.Username,
-			Password: d.Settings.Password,
+			Username: dbs.Settings.Username,
+			Password: dbs.Settings.Password,
 			Database: name,
-			Host:     d.Settings.Host,
+			Host:     dbs.Settings.Host,
 		})
 
 		if err != nil {
 			return nil, err
 		}
 
-		//d.Clients[name] = influx
+		dbs.Mutex.Lock()
+		defer dbs.Mutex.Unlock()
+		dbs.Clients[name] = influx
+
 		client = influx
 	}
 
