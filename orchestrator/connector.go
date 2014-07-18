@@ -29,14 +29,14 @@ func (c *Connector) Handshake(p plugin.Fingerprint, ok *bool) error {
 		return errors.New("Plugin broker not found for " + p.Name)
 	}
 	b.Port = p.Port
-	b.Status.Handshaked = true
+	b.Status.State = Handshaked
 	client, err := c.connect(b)
 	if err != nil {
 		*ok = false
 		return err
 	}
 	b.client = client
-	b.Status.Connected = true
+	b.Status.State = Connected
 	ping, err := b.Ping()
 	*ok = ping
 	if err != nil {

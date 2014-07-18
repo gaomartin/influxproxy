@@ -27,10 +27,9 @@ type PluginBroker struct {
 
 func NewPluginBroker(name string, path string, address string) (*PluginBroker, error) {
 	s := &PluginStatus{
-		Started:    false,
-		Handshaked: false,
-		Connected:  false,
-		FailCount:  0,
+		State:     None,
+		FailCount: 0,
+		RunCount:  0,
 	}
 
 	c := make(chan bool)
@@ -62,7 +61,7 @@ func (b *PluginBroker) Spinup(orch *Orchestrator) error {
 }
 
 func (b *PluginBroker) Ping() (bool, error) {
-	if !b.Status.Connected {
+	if b.Status.State != Connected {
 		return false, errors.New("Plugin not connected")
 	}
 	var reply bool
@@ -75,7 +74,7 @@ func (b *PluginBroker) Ping() (bool, error) {
 }
 
 func (b *PluginBroker) Describe() (*plugin.Description, error) {
-	if !b.Status.Connected {
+	if b.Status.State != Connected {
 		return nil, errors.New("Plugin not connected")
 	}
 	var reply *plugin.Description
@@ -89,7 +88,7 @@ func (b *PluginBroker) Describe() (*plugin.Description, error) {
 
 func (b *PluginBroker) Run(data plugin.Request) (*plugin.Response, error) {
 	var reply *plugin.Response
-	if !b.Status.Connected {
+	if b.Status.State != Connected {
 		return reply, errors.New("Plugin not connected")
 	}
 
@@ -97,6 +96,7 @@ func (b *PluginBroker) Run(data plugin.Request) (*plugin.Response, error) {
 	if err != nil {
 		return reply, err
 	}
+	b.Status.RunCount += 1
 	return reply, nil
 }
 
@@ -116,7 +116,7 @@ func (b *PluginBroker) launch(c chan error, orch *Orchestrator) {
 		return
 	}
 
-	b.Status.Started = true
+	b.Status.State = Started
 
 	defer b.cleanup(c, err, cmd)
 
@@ -152,9 +152,7 @@ func (b *PluginBroker) cleanup(c chan error, err error, cmd *exec.Cmd) {
 func (b *PluginBroker) reset() {
 	b.Port = 0
 	b.client = nil
-	b.Status.Started = false
-	b.Status.Handshaked = false
-	b.Status.Connected = false
+	b.Status.State = None
 }
 
 // ---------------------------------------------------------------------------------
@@ -162,8 +160,31 @@ func (b *PluginBroker) reset() {
 // ---------------------------------------------------------------------------------
 
 type PluginStatus struct {
-	Started    bool
-	Handshaked bool
-	Connected  bool
-	FailCount  int
+	State     State
+	FailCount uint32
+	RunCount  uint32
+}
+
+type State int
+
+const (
+	None State = iota + 1
+	Started
+	Handshaked
+	Connected
+)
+
+func (s State) String() string {
+	switch s {
+	case None:
+		return "None"
+	case Started:
+		return "Started"
+	case Handshaked:
+		return "Handshaked"
+	case Connected:
+		return "Connected"
+	default:
+		return "Unknown"
+	}
 }
