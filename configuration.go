@@ -33,7 +33,6 @@ func NewConfiguration(prefix string) *Configuration {
 	maxport, _ := strconv.Atoi(os.Getenv(prefix + "PLUGIN_MAXPORT"))
 
 	orch := &orchestrator.OrchestratorConfiguration{
-		Address:       os.Getenv(prefix + "PLUGIN_ADDRESS"),
 		PluginMinPort: minport,
 		PluginMaxPort: maxport,
 		Plugins:       strings.Split(os.Getenv(prefix+"PLUGINS"), " "),

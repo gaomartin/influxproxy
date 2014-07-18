@@ -52,7 +52,7 @@ func (c *Connector) Ping(in []*interface{}, pong *bool) error {
 }
 
 func (c *Connector) connect(b *PluginBroker) (*rpc.Client, error) {
-	connStr := fmt.Sprintf("%s:%v", b.Address, b.Port)
+	connStr := fmt.Sprintf("%s:%v", localhost, b.Port)
 	client, err := rpc.Dial("tcp", connStr)
 	if err != nil {
 		return nil, err

@@ -11,14 +11,14 @@ func NewBrokerRegistry() *BrokerRegistry {
 	return &BrokerRegistry{}
 }
 
-func (r *BrokerRegistry) RegisterBroker(path string, address string) error {
+func (r *BrokerRegistry) RegisterBroker(path string) error {
 	name := filepath.Base(path)
 	for _, b := range *r {
 		if b.Name == name {
 			return errors.New("Broker of plugin '" + name + "' is already registered, '" + path + "' not registered. ")
 		}
 	}
-	b, _ := NewPluginBroker(name, path, address)
+	b, _ := NewPluginBroker(name, path)
 	*r = append(*r, b)
 	return nil
 }

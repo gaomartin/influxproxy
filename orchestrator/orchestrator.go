@@ -8,6 +8,10 @@ import (
 	"os"
 )
 
+const (
+	localhost = "127.0.0.1"
+)
+
 // ---------------------------------------------------------------------------------
 // Orchestrator
 // ---------------------------------------------------------------------------------
@@ -22,7 +26,7 @@ type Orchestrator struct {
 
 // NewOrchestrator returnd a fully initialized orchestrator
 func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
-	if conf.Address == "" || conf.PluginMaxPort == 0 || conf.PluginMinPort == 0 {
+	if conf.PluginMaxPort == 0 || conf.PluginMinPort == 0 {
 		return nil, errors.New("Insufficent orchestrator configuration")
 	}
 	var out string
@@ -35,7 +39,7 @@ func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
 	o.Registry = NewBrokerRegistry()
 
 	for _, plugin := range o.Config.Plugins {
-		err = o.Registry.RegisterBroker(plugin, o.Config.Address)
+		err = o.Registry.RegisterBroker(plugin)
 		if err != nil {
 			out += err.Error()
 		}
@@ -111,10 +115,9 @@ func (orch *Orchestrator) spinup(done chan bool) error {
 
 func (orch *Orchestrator) getEnv() []string {
 	env := []string{
-		fmt.Sprintf("ORCHESTRATOR_CONN_STRING=%s:%v", orch.Config.Address, orch.Port),
+		fmt.Sprintf("ORCHESTRATOR_CONN_STRING=%s:%v", localhost, orch.Port),
 		fmt.Sprintf("PLUGIN_MIN_PORT=%d", orch.Config.PluginMinPort),
 		fmt.Sprintf("PLUGIN_MAX_PORT=%d", orch.Config.PluginMaxPort),
-		fmt.Sprintf("PLUGIN_ADDRESS=%s", orch.Config.Address),
 	}
 	env = append(os.Environ(), env...)
 	return env
@@ -122,7 +125,7 @@ func (orch *Orchestrator) getEnv() []string {
 
 func (orch *Orchestrator) getListener() (net.Listener, int, error) {
 	for port := orch.Config.PluginMinPort; port <= orch.Config.PluginMaxPort; port++ {
-		connection := fmt.Sprintf("%s:%d", orch.Config.Address, port)
+		connection := fmt.Sprintf("%s:%v", localhost, port)
 		listener, err := net.Listen("tcp", connection)
 		if err == nil {
 			return listener, port, nil
@@ -138,7 +141,6 @@ func (orch *Orchestrator) getListener() (net.Listener, int, error) {
 
 // OrchestratorConfiguration hold all required configuration data
 type OrchestratorConfiguration struct {
-	Address       string
 	PluginMinPort int
 	PluginMaxPort int
 	Plugins       []string

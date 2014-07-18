@@ -12,6 +12,10 @@ import (
 	"time"
 )
 
+const (
+	localhost = "127.0.0.1"
+)
+
 type Fingerprint struct {
 	Name string
 	Port int
@@ -19,7 +23,6 @@ type Fingerprint struct {
 
 type PluginConfiguration struct {
 	OrchConnString string
-	Address        string
 	MaxPort        int
 	MinPort        int
 }
@@ -33,15 +36,13 @@ type Plugin struct {
 func NewPlugin() (*Plugin, error) {
 	max, _ := strconv.Atoi(os.Getenv("PLUGIN_MAX_PORT"))
 	min, _ := strconv.Atoi(os.Getenv("PLUGIN_MIN_PORT"))
-	address := os.Getenv("PLUGIN_ADDRESS")
 	connString := os.Getenv("ORCHESTRATOR_CONN_STRING")
 
 	name := filepath.Base(os.Args[0])
 
-	if max != 0 && min != 0 && connString != "" && address != "" && name != "" {
+	if max != 0 && min != 0 && connString != "" {
 		conf := &PluginConfiguration{
 			OrchConnString: connString,
-			Address:        address,
 			MaxPort:        max,
 			MinPort:        min,
 		}
@@ -61,7 +62,7 @@ func NewPlugin() (*Plugin, error) {
 
 func (p *Plugin) getListener() (net.Listener, int, error) {
 	for port := p.Config.MinPort; port <= p.Config.MaxPort; port++ {
-		connection := fmt.Sprintf("%s:%d", p.Config.Address, port)
+		connection := fmt.Sprintf("%s:%d", localhost, port)
 		listener, err := net.Listen("tcp", connection)
 		if err == nil {
 			return listener, port, nil

@@ -18,14 +18,13 @@ import (
 type PluginBroker struct {
 	Name      string
 	Path      string
-	Address   string
 	Port      int
 	readyChan chan bool
 	client    *rpc.Client
 	Status    *PluginStatus
 }
 
-func NewPluginBroker(name string, path string, address string) (*PluginBroker, error) {
+func NewPluginBroker(name string, path string) (*PluginBroker, error) {
 	s := &PluginStatus{
 		State:     None,
 		FailCount: 0,
@@ -37,7 +36,6 @@ func NewPluginBroker(name string, path string, address string) (*PluginBroker, e
 	b := &PluginBroker{
 		Name:      name,
 		Path:      path,
-		Address:   address,
 		Port:      0,
 		readyChan: c,
 		client:    nil,
