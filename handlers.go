@@ -34,12 +34,12 @@ func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *D
 	b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
 	if b != nil {
 		db, err := influxdbs.Get(c.Params.ByName("db"))
-		if err == nil {
+		if err != nil {
 			return 500, err.Error()
 		}
 
 		body, err := getBodyAsString(c.Req.Body)
-		if err == nil {
+		if err != nil {
 			return 500, err.Error()
 		}
 
@@ -49,7 +49,7 @@ func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *D
 			Body:  body,
 		}
 		reply, err := b.Run(call)
-		if err == nil {
+		if err != nil {
 			return 500, err.Error()
 		}
 
