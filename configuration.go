@@ -36,7 +36,7 @@ func NewConfiguration(prefix string) *Configuration {
 		Address:       os.Getenv(prefix + "PLUGIN_ADDRESS"),
 		PluginMinPort: minport,
 		PluginMaxPort: maxport,
-		Plugins:       strings.Split(os.Getenv(prefix+"PLUGINS"), ","),
+		Plugins:       strings.Split(os.Getenv(prefix+"PLUGINS"), " "),
 	}
 
 	db := &Influxdb{
