@@ -47,5 +47,5 @@ func main() {
 		})
 	}
 
-	g.Run(conf.Proxy)
+	g.Run(conf.Proxy.Host)
 }

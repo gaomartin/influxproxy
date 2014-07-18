@@ -5,14 +5,23 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/influxdb/influxdb-go"
 	"github.com/influxproxy/influxproxy/orchestrator"
 )
 
+type Influxdb struct {
+	Username string
+	Password string
+	Host     string
+}
+
+type Proxy struct {
+	Host string
+}
+
 type Configuration struct {
 	Orchestrator *orchestrator.OrchestratorConfiguration
-	Influxdb     *influxdb.ClientConfig
-	Proxy        string
+	Influxdb     *Influxdb
+	Proxy        *Proxy
 }
 
 func NewConfiguration(prefix string) *Configuration {
@@ -30,16 +39,20 @@ func NewConfiguration(prefix string) *Configuration {
 		Plugins:       strings.Split(os.Getenv(prefix+"PLUGINS"), ","),
 	}
 
-	db := &influxdb.ClientConfig{
+	db := &Influxdb{
 		Username: os.Getenv(prefix + "DB_USER"),
 		Password: os.Getenv(prefix + "DB_PASSWORD"),
 		Host:     os.Getenv(prefix+"DB_ADDRESS") + ":" + os.Getenv(prefix+"DB_PORT"),
 	}
 
+	proxy := &Proxy{
+		Host: os.Getenv(prefix+"ADDRESS") + ":" + os.Getenv(prefix+"PORT"),
+	}
+
 	config := &Configuration{
 		Orchestrator: orch,
 		Influxdb:     db,
-		Proxy:        os.Getenv(prefix+"ADDRESS") + ":" + os.Getenv(prefix+"PORT"),
+		Proxy:        proxy,
 	}
 
 	return config
