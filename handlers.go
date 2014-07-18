@@ -19,7 +19,6 @@ func handleGetPlugin(c *gin.Context, o *orchestrator.Orchestrator) (int, string)
 		text, err := json.Marshal(reply)
 		if err == nil {
 			return 200, string(text)
-			return 200, string(text)
 		} else {
 			return 500, err.Error()
 		}
@@ -41,13 +40,12 @@ func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *D
 		reply, err := b.Run(call)
 		err = db.WriteSeries(reply.Series)
 		if err != nil {
-			fmt.Println(err)
 			return 500, err.Error()
 		} else if reply.Error != "" {
 			fmt.Println(reply.Error)
 			return 500, reply.Error
 		} else {
-			return 200, "written"
+			return 200, "Series are written to InfluxDB"
 		}
 	} else {
 		return 404, c.Params.ByName("plugin") + " does not exist"
