@@ -2,6 +2,9 @@ package plugin
 
 import (
 	"errors"
+	"net/url"
+
+	"github.com/influxdb/influxdb-go"
 )
 
 type Connector struct {
@@ -37,4 +40,14 @@ func (c *Connector) Run(in Request, out *Response) error {
 type Exposer interface {
 	Describe() Description
 	Run(in Request) Response
+}
+
+type Request struct {
+	Query url.Values
+	Body  string
+}
+
+type Response struct {
+	Series []*influxdb.Series
+	Error  string
 }
