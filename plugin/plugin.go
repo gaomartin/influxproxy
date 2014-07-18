@@ -55,7 +55,7 @@ func NewPlugin() (*Plugin, error) {
 		}
 		return p, nil
 	} else {
-		return nil, errors.New("Not enough data to build plugin")
+		return nil, errors.New("Not enough data to build plugin. Do not start Plugin from command line.")
 	}
 }
 
