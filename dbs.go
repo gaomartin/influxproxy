@@ -13,7 +13,6 @@ type Dbs struct {
 }
 
 func NewDbs(settings *Influxdb) *Dbs {
-	//clients := make(map[string]*influxdb.Client)
 	return &Dbs{
 		Mutex:    &sync.Mutex{},
 		Settings: settings,
