@@ -17,14 +17,14 @@ import (
 // The broker also manages the life cycle of the plugin
 type PluginBroker struct {
 	Name      string
-	Path      string
+	Plugin    string
 	Port      int
 	readyChan chan bool
 	client    *rpc.Client
 	Status    *PluginStatus
 }
 
-func NewPluginBroker(name string, path string) (*PluginBroker, error) {
+func NewPluginBroker(name string, plugin string) (*PluginBroker, error) {
 	s := &PluginStatus{
 		State:     None,
 		FailCount: 0,
@@ -35,7 +35,7 @@ func NewPluginBroker(name string, path string) (*PluginBroker, error) {
 
 	b := &PluginBroker{
 		Name:      name,
-		Path:      path,
+		Plugin:    plugin,
 		Port:      0,
 		readyChan: c,
 		client:    nil,
@@ -101,12 +101,12 @@ func (b *PluginBroker) Run(data plugin.Request) (*plugin.Response, error) {
 // Launch the plugin binary
 func (b *PluginBroker) launch(c chan error, orch *Orchestrator) {
 
-	if _, err := os.Stat(b.Path); os.IsNotExist(err) {
+	if _, err := os.Stat(b.Plugin); os.IsNotExist(err) {
 		b.fail(c, err)
 		return
 	}
 
-	cmd := exec.Command(b.Path)
+	cmd := exec.Command(b.Plugin)
 	cmd.Env = append(cmd.Env, orch.getEnv()...)
 	err := cmd.Start()
 	if err != nil {

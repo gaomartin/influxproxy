@@ -7,22 +7,27 @@ import (
 )
 
 type Dbs struct {
-	Settings *Influxdb
 	Mutex    *sync.Mutex
+	Settings *Influxdb
 	Clients  map[string]*influxdb.Client
 }
 
 func NewDbs(settings *Influxdb) *Dbs {
-	return &Dbs{Mutex: &sync.Mutex{}, Settings: settings}
+	var clients map[string]*influxdb.Client
+	return &Dbs{
+		Mutex:    &sync.Mutex{},
+		Settings: settings,
+		Clients:  clients,
+	}
 }
 
 func (d *Dbs) Get(name string) (*influxdb.Client, error) {
 	d.Mutex.Lock()
 	defer d.Mutex.Unlock()
 
-	client := d.Clients[name]
+	client, ok := d.Clients[name]
 
-	if client == nil {
+	if !ok {
 
 		influx, err := influxdb.NewClient(&influxdb.ClientConfig{
 			Username: d.Settings.Username,
@@ -35,8 +40,8 @@ func (d *Dbs) Get(name string) (*influxdb.Client, error) {
 			return nil, err
 		}
 
-		d.Clients[name] = influx
-		client = d.Clients[name]
+		//d.Clients[name] = influx
+		client = influx
 	}
 
 	return client, nil

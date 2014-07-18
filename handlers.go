@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -40,8 +41,10 @@ func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *D
 		reply, err := b.Run(call)
 		err = db.WriteSeries(reply.Series)
 		if err != nil {
+			fmt.Println(err)
 			return 500, err.Error()
 		} else if reply.Error != "" {
+			fmt.Println(reply.Error)
 			return 500, reply.Error
 		} else {
 			return 200, "written"
