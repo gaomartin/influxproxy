@@ -10,6 +10,9 @@ import (
 
 func main() {
 	conf := NewConfiguration("INFLUXPROXY")
+
+	influxdbs := NewDbs(conf.Influxdb)
+
 	o, err := orchestrator.NewOrchestrator(conf.Orchestrator)
 	if err != nil {
 		log.Panic(err)
@@ -32,7 +35,7 @@ func main() {
 		})
 
 		in.POST("/:db/:plugin", func(c *gin.Context) {
-			c.String(handlePostPlugin(c, o))
+			c.String(handlePostPlugin(c, o, influxdbs))
 		})
 	}
 

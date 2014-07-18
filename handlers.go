@@ -27,9 +27,10 @@ func handleGetPlugin(c *gin.Context, o *orchestrator.Orchestrator) (int, string)
 	}
 }
 
-func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator) (int, string) {
+func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *Dbs) (int, string) {
 	b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
 	if b != nil {
+		db, err := influxdbs.Get(c.Params.ByName("db"))
 		body, err := getBodyAsString(c.Req.Body)
 		query := c.Req.URL.Query()
 		call := plugin.Request{
@@ -37,13 +38,13 @@ func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator) (int, string
 			Body:  body,
 		}
 		reply, err := b.Run(call)
-		series, err := json.Marshal(reply.Series)
+		err = db.WriteSeries(reply.Series)
 		if err != nil {
 			return 500, err.Error()
 		} else if reply.Error != "" {
 			return 500, reply.Error
 		} else {
-			return 200, string(series)
+			return 200, "written"
 		}
 	} else {
 		return 404, c.Params.ByName("plugin") + " does not exist"

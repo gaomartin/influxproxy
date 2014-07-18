@@ -12,6 +12,6 @@ type Request struct {
 }
 
 type Response struct {
-	Series []influxdb.Series
+	Series []*influxdb.Series
 	Error  string
 }
