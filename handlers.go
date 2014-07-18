@@ -15,12 +15,15 @@ func handleGetPlugin(c *gin.Context, o *orchestrator.Orchestrator) (int, string)
 	b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
 	if b != nil {
 		reply, err := b.Describe()
-		//TODO: Nice error handling
-		text, err := json.Marshal(reply)
-		if err == nil {
-			return 200, string(text)
-		} else {
+		if err != nil {
 			return 500, err.Error()
+		}
+
+		text, err := json.Marshal(reply)
+		if err != nil {
+			return 500, err.Error()
+		} else {
+			return 200, string(text)
 		}
 	} else {
 		return 404, c.Params.ByName("plugin") + " does not exist"
@@ -31,13 +34,25 @@ func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *D
 	b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
 	if b != nil {
 		db, err := influxdbs.Get(c.Params.ByName("db"))
+		if err == nil {
+			return 500, err.Error()
+		}
+
 		body, err := getBodyAsString(c.Req.Body)
+		if err == nil {
+			return 500, err.Error()
+		}
+
 		query := c.Req.URL.Query()
 		call := plugin.Request{
 			Query: query,
 			Body:  body,
 		}
 		reply, err := b.Run(call)
+		if err == nil {
+			return 500, err.Error()
+		}
+
 		err = db.WriteSeries(reply.Series)
 		if err != nil {
 			return 500, err.Error()
