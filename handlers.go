@@ -35,12 +35,14 @@ func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *D
 	if b != nil {
 		db, err := influxdbs.Get(c.Params.ByName("db"))
 		if err != nil {
+			fmt.Println("influxdbs.Get ERROR: ")
 			fmt.Println(err.Error())
 			return 500, err.Error()
 		}
 
 		body, err := getBodyAsString(c.Req.Body)
 		if err != nil {
+			fmt.Println("getBodyAsString ERROR: ")
 			fmt.Println(err.Error())
 			return 500, err.Error()
 		}
@@ -52,15 +54,18 @@ func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *D
 		}
 		reply, err := b.Run(call)
 		if err != nil {
+			fmt.Println("b.Run err ERROR: ")
 			fmt.Println(err.Error())
 			return 500, err.Error()
 		} else if reply.Error != "" {
+			fmt.Println("b.Run reply string ERROR: ")
 			fmt.Println(reply.Error)
 			return 500, reply.Error
 		}
 
 		err = db.WriteSeries(reply.Series)
 		if err != nil {
+			fmt.Println("db.WriteSeries ERROR: ")
 			fmt.Println(err.Error())
 			return 500, err.Error()
 		} else {
