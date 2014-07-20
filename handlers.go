@@ -94,9 +94,10 @@ func handleGetConfig(c *gin.Context, conf *Configuration) (int, string) {
 // ---------------------------------------------------------------------------------
 
 func getBodyAsString(body io.ReadCloser) (string, error) {
-	out, err := ioutil.ReadAll(body)
+	b, err := ioutil.ReadAll(body)
 	if err != nil {
 		return "", err
 	}
-	return string(out), nil
+	out := string(b)
+	return out, nil
 }
