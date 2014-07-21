@@ -1,3 +1,18 @@
+// Package orchestrator provides an infrastucture that allows the program to communicate
+// with plugin software that make use of the 'plugin' package (github.com/influxproxy/influxproxy/plugin).
+// The package is developed for the purpose and requirements of 'influxproxy'
+// (github.com/influxproxy/influxproxy), nonetheless the conceplt is kept abstract so with small changes,
+// the code should be reusable for other prjects.
+//
+// The concept is relatively simple and is based on the concept of the plugin infrastructure of 'packer.io':
+// The orchestrator launches external executables (eg. the plugins) and provides basic configuration
+// infromation via their environment variables. Information on the plugins are kept by plugin brokers. Plugin
+// brokers are registerd in the registry 'owned' by the orchestrator.
+//
+// As soon as the plugins are lauchned, they call the RPC interface of the orchestrator (provided via the
+// connector of the orchestrator) to share their connection details. The orchestrator then connects via RPC
+// to the plugins. When the connection is established via 'handshake', the program can invoke the
+// functionality of the plugins via Orchestrator > Registry > Brokers
 package orchestrator
 
 import (
@@ -16,15 +31,17 @@ const (
 // Orchestrator
 // ---------------------------------------------------------------------------------
 
-//
+// Orchestrator is used to orchestrate the plugins, manage their life cycle and handle
+// the communication between the orchestrating programm and its plugins
 type Orchestrator struct {
-	Config    *OrchestratorConfiguration
-	Registry  *BrokerRegistry
-	Connector *Connector
-	Port      int
+	Config    *OrchestratorConfiguration // holds all necessary configuration
+	Registry  *BrokerRegistry            // holds all plugin broker information
+	Connector *Connector                 // holds the methodes that are exposed via RPC
+	Port      int                        // holds its own port that is exposed via RPC
 }
 
-// NewOrchestrator returnd a fully initialized orchestrator
+// NewOrchestrator returnd a fully initialized orchestrator and registres the given
+// plugins to its registry.
 func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
 	if conf.PluginMaxPort == 0 || conf.PluginMinPort == 0 {
 		return nil, errors.New("Insufficent orchestrator configuration")
@@ -51,12 +68,14 @@ func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
 	return o, err
 }
 
-// Starts the orchestrator instance and all its Plugins concurrently
+// Starts the orchestrator instance and all its Plugins.
 func (orch *Orchestrator) Start() ([]string, error) {
 	var err error
 	var messages []string
 
-	// get the orchestrator itself started
+	// Get the orchestrator itself started. Since spinup() lives forever in order to
+	// serve the RPC connection, it is starded in a goroutine and continues unblocks
+	// as soon as orchChan recieves any value.
 	orchChan := make(chan bool)
 	go func() {
 		err = orch.spinup(orchChan)
@@ -69,7 +88,8 @@ func (orch *Orchestrator) Start() ([]string, error) {
 
 	messages = append(messages, fmt.Sprintf("Orchestrator started on port %v.", orch.Port))
 
-	// get plugins started concurrently
+	// Get plugins started via their brokers. Since Spinup() lasts as long as the plugin
+	// does not crash, a goroutine and continues unblocks as soon as bChan recieves any value.
 	bChan := make(chan bool)
 	go func() {
 		for _, b := range *orch.Registry {
