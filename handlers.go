@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -30,20 +29,48 @@ func handleGetPlugin(c *gin.Context, o *orchestrator.Orchestrator) (int, string)
 	}
 }
 
+func handleEchoPlugin(c *gin.Context, o *orchestrator.Orchestrator) (int, string) {
+	b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
+	if b != nil {
+		body, err := getBodyAsString(c.Req.Body)
+		if err != nil {
+			return 500, err.Error()
+		}
+
+		query := c.Req.URL.Query()
+		call := plugin.Request{
+			Query: query,
+			Body:  body,
+		}
+
+		reply, err := b.Run(call)
+		if err != nil {
+			return 500, err.Error()
+		} else if reply.Error != "" {
+			return 500, reply.Error
+		}
+
+		b, err := json.Marshal(reply.Series)
+		if err != nil {
+			return 500, err.Error()
+		} else {
+			return 200, string(b)
+		}
+	} else {
+		return 404, c.Params.ByName("plugin") + " does not exist"
+	}
+}
+
 func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *Dbs) (int, string) {
 	b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
 	if b != nil {
 		db, err := influxdbs.Get(c.Params.ByName("db"))
 		if err != nil {
-			fmt.Println("influxdbs.Get ERROR: ")
-			fmt.Println(err.Error())
 			return 500, err.Error()
 		}
 
 		body, err := getBodyAsString(c.Req.Body)
 		if err != nil {
-			fmt.Println("getBodyAsString ERROR: ")
-			fmt.Println(err.Error())
 			return 500, err.Error()
 		}
 
@@ -54,19 +81,13 @@ func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *D
 		}
 		reply, err := b.Run(call)
 		if err != nil {
-			fmt.Println("b.Run err ERROR: ")
-			fmt.Println(err.Error())
 			return 500, err.Error()
 		} else if reply.Error != "" {
-			fmt.Println("b.Run reply string ERROR: ")
-			fmt.Println(reply.Error)
 			return 500, reply.Error
 		}
 
 		err = db.WriteSeries(reply.Series)
 		if err != nil {
-			fmt.Println("db.WriteSeries ERROR: ")
-			fmt.Println(err.Error())
 			return 500, err.Error()
 		} else {
 			return 200, "Series are written to InfluxDB"

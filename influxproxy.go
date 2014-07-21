@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	//"github.com/influxdb/influxdb-go"
 	"github.com/influxproxy/influxproxy/orchestrator"
 )
 
@@ -47,6 +46,13 @@ func main() {
 
 		admin.GET("/config", func(c *gin.Context) {
 			c.String(handleGetConfig(c, conf))
+		})
+	}
+
+	echo := g.Group("/echo")
+	{
+		echo.POST("/:plugin", func(c *gin.Context) {
+			c.String(handleEchoPlugin(c, o))
 		})
 	}
 
