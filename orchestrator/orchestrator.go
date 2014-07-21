@@ -68,7 +68,7 @@ func NewOrchestrator(conf *OrchestratorConfiguration) (*Orchestrator, error) {
 	return o, err
 }
 
-// Starts the orchestrator instance and all its Plugins.
+// Start starts the orchestrator instance and all its Plugins.
 func (orch *Orchestrator) Start() ([]string, error) {
 	var err error
 	var messages []string
@@ -107,7 +107,8 @@ func (orch *Orchestrator) Start() ([]string, error) {
 	return messages, nil
 }
 
-// Inits the Orchestrator
+// spinup starts the orchestrator itself and serves functionality to its plugins via RPC.
+// The port the orchestrator listens to is allocated dynamically and saves to orch.Port.
 func (orch *Orchestrator) spinup(done chan bool) error {
 	connector := NewConnector(orch.Registry)
 	orch.Connector = connector
@@ -120,7 +121,7 @@ func (orch *Orchestrator) spinup(done chan bool) error {
 	}
 
 	orch.Port = port
-	done <- true
+	done <- true // before serving the RPC connection, unblock the calling function
 
 	for {
 		c, err := ln.Accept()
@@ -133,6 +134,8 @@ func (orch *Orchestrator) spinup(done chan bool) error {
 	return nil
 }
 
+// getEnv prepares the environment variables required to start the plugins. All
+// plugin configuration happens via environment variables.
 func (orch *Orchestrator) getEnv() []string {
 	env := []string{
 		fmt.Sprintf("ORCHESTRATOR_CONN_STRING=%s:%v", localhost, orch.Port),
@@ -143,6 +146,8 @@ func (orch *Orchestrator) getEnv() []string {
 	return env
 }
 
+// getListener allocates a port from an given range dynamically and returns a listener
+// if any port was available in this range.
 func (orch *Orchestrator) getListener() (net.Listener, int, error) {
 	for port := orch.Config.PluginMinPort; port <= orch.Config.PluginMaxPort; port++ {
 		connection := fmt.Sprintf("%s:%v", localhost, port)
@@ -151,7 +156,6 @@ func (orch *Orchestrator) getListener() (net.Listener, int, error) {
 			return listener, port, nil
 		}
 	}
-
 	return nil, 0, errors.New("Could not get TCP listener, maybe all ports are already used")
 }
 
@@ -159,7 +163,7 @@ func (orch *Orchestrator) getListener() (net.Listener, int, error) {
 // OrchestratorConfiguration
 // ---------------------------------------------------------------------------------
 
-// OrchestratorConfiguration hold all required configuration data
+// OrchestratorConfiguration hold all required configuration data for the orchestrator
 type OrchestratorConfiguration struct {
 	PluginMinPort int
 	PluginMaxPort int
