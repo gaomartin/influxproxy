@@ -1,7 +1,7 @@
 // Package plugin is the counterpart of the orchestrator (github.com/influxproxy/influxproxy/orchestrator).
 // Its purpose is to provide the most simple interface for programmers
-// to implement a program that fulfils all requirements given by the orchestrator
-// progamm to be called as a plugin.
+// to implement a program that fulfills all requirements given by the orchestrator
+// progam to be called as a plugin.
 //
 // For more insights of the concept, read the documentation of the orchestrator
 // (github.com/influxproxy/influxproxy/orchestrator).
