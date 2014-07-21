@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"sync"
 
 	"github.com/influxdb/influxdb-go"
@@ -31,7 +32,11 @@ func (dbs *Dbs) Get(name string) (*influxdb.Client, error) {
 			Database: name,
 			Host:     dbs.Settings.Host,
 		})
+		if err != nil {
+			return nil, err
+		}
 
+		err = influx.Ping()
 		if err != nil {
 			return nil, err
 		}
@@ -39,7 +44,7 @@ func (dbs *Dbs) Get(name string) (*influxdb.Client, error) {
 		dbs.Mutex.Lock()
 		defer dbs.Mutex.Unlock()
 		dbs.Clients[name] = influx
-
+		log.Println("New database registered: " + name)
 		client = influx
 	}
 
