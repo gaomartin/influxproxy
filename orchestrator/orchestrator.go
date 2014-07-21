@@ -1,18 +1,18 @@
 // Package orchestrator provides an infrastucture that allows the program to communicate
 // with plugin software that make use of the 'plugin' package (github.com/influxproxy/influxproxy/plugin).
 // The package is developed for the purpose and requirements of 'influxproxy'
-// (github.com/influxproxy/influxproxy), nonetheless the conceplt is kept abstract so with small changes,
-// the code should be reusable for other prjects.
+// (github.com/influxproxy/influxproxy), nonetheless the concept is kept abstract; with small changes,
+// the code should be reusable for other projects.
 //
 // The concept is relatively simple and is based on the concept of the plugin infrastructure of 'packer.io':
 // The orchestrator launches external executables (eg. the plugins) and provides basic configuration
-// infromation via their environment variables. Information on the plugins are kept by plugin brokers. Plugin
+// information via their environment variables. Information on the plugins are kept by plugin brokers. Plugin
 // brokers are registerd in the registry 'owned' by the orchestrator.
 //
 // As soon as the plugins are lauchned, they call the RPC interface of the orchestrator (provided via the
 // connector of the orchestrator) to share their connection details. The orchestrator then connects via RPC
 // to the plugins. When the connection is established via 'handshake', the program can invoke the
-// functionality of the plugins via Orchestrator > Registry > Brokers
+// functionality of the plugins via Orchestrator > Registry > Brokers.
 package orchestrator
 
 import (
@@ -32,7 +32,7 @@ const (
 // ---------------------------------------------------------------------------------
 
 // Orchestrator is used to orchestrate the plugins, manage their life cycle and handle
-// the communication between the orchestrating programm and its plugins
+// the communication between the orchestrating programm and its plugins.
 type Orchestrator struct {
 	Config    *OrchestratorConfiguration // holds all necessary configuration
 	Registry  *BrokerRegistry            // holds all plugin broker information
@@ -163,7 +163,7 @@ func (orch *Orchestrator) getListener() (net.Listener, int, error) {
 // OrchestratorConfiguration
 // ---------------------------------------------------------------------------------
 
-// OrchestratorConfiguration hold all required configuration data for the orchestrator
+// OrchestratorConfiguration hold all required configuration data for the orchestrator.
 type OrchestratorConfiguration struct {
 	PluginMinPort int
 	PluginMaxPort int

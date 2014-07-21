@@ -13,17 +13,18 @@ import (
 // PluginBroker
 // ---------------------------------------------------------------------------------
 
-// The broker holds information about the plugin itself, its state
-// The broker also manages the life cycle of the plugin
+// PluginBroker holds information about the plugin itself, its state
+// The broker also manages the life cycle of the plugin.
 type PluginBroker struct {
-	Name      string
-	Plugin    string
-	Port      int
-	readyChan chan bool
-	client    *rpc.Client
-	Status    *PluginStatus
+	Name      string        // name of the plugin
+	Plugin    string        // file system path of the plugin
+	Port      int           // port of the RPC server of the plugin
+	readyChan chan bool     // channel that is used in order to get the connected state from the connector
+	client    *rpc.Client   // RPC client used to access the functionality of the plugin
+	Status    *PluginStatus // status of the plugin
 }
 
+// NewPluginBroker return an initialized plugin broker of a not yet started plugin.
 func NewPluginBroker(name string, plugin string) (*PluginBroker, error) {
 	s := &PluginStatus{
 		State:     None,
@@ -45,7 +46,7 @@ func NewPluginBroker(name string, plugin string) (*PluginBroker, error) {
 	return b, nil
 }
 
-// Maintains the start process of a plugin
+// Maintains the start process of a plugin.
 func (b *PluginBroker) Spinup(orch *Orchestrator) error {
 	c := make(chan error)
 	go b.launch(c, orch)
@@ -58,6 +59,8 @@ func (b *PluginBroker) Spinup(orch *Orchestrator) error {
 	return nil
 }
 
+// Ping calles the plugin. Its only purpose is to ensure that the plugin is alive
+// and responding.
 func (b *PluginBroker) Ping() (bool, error) {
 	if b.Status.State != Connected {
 		return false, errors.New("Plugin not connected")
@@ -71,6 +74,9 @@ func (b *PluginBroker) Ping() (bool, error) {
 	return reply, nil
 }
 
+// Describe requests information of the plugin and returns them to the caller.
+// The returned plugin.Description provides detailed information on the
+// funtionality and the arguments of the plugin.
 func (b *PluginBroker) Describe() (*plugin.Description, error) {
 	if b.Status.State != Connected {
 		return nil, errors.New("Plugin not connected")
@@ -84,6 +90,7 @@ func (b *PluginBroker) Describe() (*plugin.Description, error) {
 	return reply, nil
 }
 
+// Run invoces the main functionality of the plugin.
 func (b *PluginBroker) Run(data plugin.Request) (*plugin.Response, error) {
 	var reply *plugin.Response
 	if b.Status.State != Connected {
@@ -98,9 +105,10 @@ func (b *PluginBroker) Run(data plugin.Request) (*plugin.Response, error) {
 	return reply, nil
 }
 
-// Launch the plugin binary
+// launch starts the plugin binary with its configuration as environment and runs for
+// the whole life of the plugin. It also initiates the cleanup if the plugin panics or
+// fails for any reason.
 func (b *PluginBroker) launch(c chan error, orch *Orchestrator) {
-
 	if _, err := os.Stat(b.Plugin); os.IsNotExist(err) {
 		b.fail(c, err)
 		return
@@ -122,6 +130,7 @@ func (b *PluginBroker) launch(c chan error, orch *Orchestrator) {
 	go b.watch(c, cmd, exitCh)
 }
 
+// fail makes shure that the state of the plugin is reset and channels are unblocked.
 func (b *PluginBroker) fail(c chan error, err error) {
 	b.reset()
 	b.Status.FailCount += 1
@@ -129,6 +138,7 @@ func (b *PluginBroker) fail(c chan error, err error) {
 	b.readyChan <- false
 }
 
+// watch keeps track of the plugin and cleans up if the plugin dies for any reason.
 func (b *PluginBroker) watch(c chan error, cmd *exec.Cmd, exitCh chan struct{}) {
 	cmd.Wait()
 	err := errors.New("Plugin ended")
@@ -136,6 +146,7 @@ func (b *PluginBroker) watch(c chan error, cmd *exec.Cmd, exitCh chan struct{}) 
 	close(exitCh)
 }
 
+// cleanup makes shure that any plugin process is cleaned up.
 func (b *PluginBroker) cleanup(c chan error, err error, cmd *exec.Cmd) {
 	c <- nil
 	r := recover()
@@ -147,6 +158,7 @@ func (b *PluginBroker) cleanup(c chan error, err error, cmd *exec.Cmd) {
 	}
 }
 
+// reset resets the state of a plugin.
 func (b *PluginBroker) reset() {
 	b.Port = 0
 	b.client = nil
@@ -157,12 +169,14 @@ func (b *PluginBroker) reset() {
 // PluginStatus
 // ---------------------------------------------------------------------------------
 
+// PluginStatus holds relevant information on the state of the plugin resp. the broker.
 type PluginStatus struct {
-	State     State
-	FailCount uint32
-	RunCount  uint32
+	State     State  // current state of the plugin
+	FailCount uint32 // number of crashes of the plugin
+	RunCount  uint32 // number of Run() calls of the plugin
 }
 
+// State is the representation of the plugin state.
 type State int
 
 const (
@@ -172,6 +186,7 @@ const (
 	Connected
 )
 
+// String implements the Stringer interface and returns an textual representation of the state.
 func (s State) String() string {
 	switch s {
 	case None:

@@ -14,7 +14,7 @@ type Connector struct {
 	Registry *BrokerRegistry
 }
 
-// NewConnector returns an initialized connector
+// NewConnector returns an initialized connector.
 func NewConnector(reg *BrokerRegistry) *Connector {
 	o := &Connector{
 		Registry: reg,
