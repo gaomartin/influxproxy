@@ -8,6 +8,10 @@ import (
 	"github.com/influxproxy/influxproxy/plugin"
 )
 
+// ---------------------------------------------------------------------------------
+// Connector
+// ---------------------------------------------------------------------------------
+
 // Connector provides all functionality that is exposed via RPC to recieve messages from
 // the plugins.
 type Connector struct {

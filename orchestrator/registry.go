@@ -5,6 +5,10 @@ import (
 	"path/filepath"
 )
 
+// ---------------------------------------------------------------------------------
+// BrokerRegistry
+// ---------------------------------------------------------------------------------
+
 // BrokerRegistry keeps references to all registered plugin brokers.
 type BrokerRegistry []*PluginBroker
 
