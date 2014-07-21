@@ -53,7 +53,11 @@ func (c *Connector) Run(in Request, out *Response) error {
 // ---------------------------------------------------------------------------------
 
 // Exposer needs to be implemented by the plugin program itself in order to provide
-// the required functionalities required by the orchestrator.
+// the required functionalities required by the orchestrator. As long as no more
+// functionality is required, this can be reused in other projecs than InfluxProxy.
+// If more/other functionality is required, the Exposer interface, the plugin.Connector
+// methodes as well as the orchestrator.PluginBroker methodes would be required to be
+// remodeled
 type Exposer interface {
 	Describe() Description
 	Run(in Request) Response
