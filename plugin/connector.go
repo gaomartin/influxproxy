@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/influxdb/influxdb-go"
+	influxdb "github.com/influxdb/influxdb/client"
 )
 
 // ---------------------------------------------------------------------------------
