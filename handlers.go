@@ -32,12 +32,12 @@ func handleGetPlugin(c *gin.Context, o *orchestrator.Orchestrator) (int, string)
 func handleEchoPlugin(c *gin.Context, o *orchestrator.Orchestrator) (int, string) {
 	b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
 	if b != nil {
-		body, err := getBodyAsString(c.Req.Body)
+		body, err := getBodyAsString(c.Request.Body)
 		if err != nil {
 			return 500, err.Error()
 		}
 
-		query := c.Req.URL.Query()
+		query := c.Request.URL.Query()
 		call := plugin.Request{
 			Query: query,
 			Body:  body,
@@ -69,12 +69,12 @@ func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *D
 			return 500, err.Error()
 		}
 
-		body, err := getBodyAsString(c.Req.Body)
+		body, err := getBodyAsString(c.Request.Body)
 		if err != nil {
 			return 500, err.Error()
 		}
 
-		query := c.Req.URL.Query()
+		query := c.Request.URL.Query()
 		call := plugin.Request{
 			Query: query,
 			Body:  body,
