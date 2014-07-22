@@ -36,10 +36,10 @@ func (dbs *Dbs) Get(name string) (*influxdb.Client, error) {
 			return nil, err
 		}
 
-		err = influx.Ping()
-		if err != nil {
-			return nil, err
-		}
+		// err = influx.Ping()
+		// if err != nil {
+		// 	return nil, err
+		// }
 
 		dbs.Mutex.Lock()
 		defer dbs.Mutex.Unlock()
