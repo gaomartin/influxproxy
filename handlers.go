@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"io"
 	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
@@ -32,7 +31,7 @@ func handleGetPlugin(c *gin.Context, o *orchestrator.Orchestrator) (int, string)
 func handleEchoPlugin(c *gin.Context, o *orchestrator.Orchestrator) (int, string) {
 	b := o.Registry.GetBrokerByName(c.Params.ByName("plugin"))
 	if b != nil {
-		body, err := getBodyAsString(c.Request.Body)
+		body, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
 			return 500, err.Error()
 		}
@@ -69,16 +68,18 @@ func handlePostPlugin(c *gin.Context, o *orchestrator.Orchestrator, influxdbs *D
 			return 500, err.Error()
 		}
 
-		body, err := getBodyAsString(c.Request.Body)
+		body, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
 			return 500, err.Error()
 		}
 
 		query := c.Request.URL.Query()
+
 		call := plugin.Request{
 			Query: query,
 			Body:  body,
 		}
+
 		reply, err := b.Run(call)
 		if err != nil {
 			return 500, err.Error()
@@ -113,17 +114,4 @@ func handleGetConfig(c *gin.Context, conf *Configuration) (int, string) {
 	} else {
 		return 500, err.Error()
 	}
-}
-
-// ---------------------------------------------------------------------------------
-// Helper Functions
-// ---------------------------------------------------------------------------------
-
-func getBodyAsString(body io.ReadCloser) (string, error) {
-	b, err := ioutil.ReadAll(body)
-	if err != nil {
-		return "", err
-	}
-	out := string(b)
-	return out, nil
 }

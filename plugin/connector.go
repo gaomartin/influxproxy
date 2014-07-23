@@ -73,7 +73,7 @@ type Exposer interface {
 // alternative use in other projects.
 type Request struct {
 	Query url.Values
-	Body  string
+	Body  []byte
 }
 
 // ---------------------------------------------------------------------------------
